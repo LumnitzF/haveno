@@ -34,6 +34,7 @@ import bisq.core.trade.statistics.TradeStatistics2Store;
 import bisq.core.trade.statistics.TradeStatistics3Store;
 import bisq.core.user.PreferencesPayload;
 import bisq.core.user.UserPayload;
+import bisq.core.xmr.persistence.model.PersistableXmrConnectionStore;
 
 import bisq.network.p2p.mailbox.IgnoredMailboxMap;
 import bisq.network.p2p.mailbox.MailboxMessageList;
@@ -84,7 +85,7 @@ public class CorePersistenceProtoResolver extends CoreProtoResolver implements P
                 case ADDRESS_ENTRY_LIST:
                     return AddressEntryList.fromProto(proto.getAddressEntryList());
                 case XMR_ADDRESS_ENTRY_LIST:
-                  return XmrAddressEntryList.fromProto(proto.getXmrAddressEntryList());
+                    return XmrAddressEntryList.fromProto(proto.getXmrAddressEntryList());
                 case TRADABLE_LIST:
                     return TradableList.fromProto(proto.getTradableList(), this, xmrWalletService.get());
                 case ARBITRATION_DISPUTE_LIST:
@@ -115,6 +116,8 @@ public class CorePersistenceProtoResolver extends CoreProtoResolver implements P
                     return IgnoredMailboxMap.fromProto(proto.getIgnoredMailboxMap());
                 case REMOVED_PAYLOADS_MAP:
                     return RemovedPayloadsMap.fromProto(proto.getRemovedPayloadsMap());
+                case XMR_CONNECTION_STORE:
+                    return PersistableXmrConnectionStore.fromProto(proto.getXmrConnectionStore());
                 default:
                     throw new ProtobufferRuntimeException("Unknown proto message case(PB.PersistableEnvelope). " +
                             "messageCase=" + proto.getMessageCase() + "; proto raw data=" + proto.toString());

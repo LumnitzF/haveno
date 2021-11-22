@@ -1321,6 +1321,8 @@ message PersistableEnvelope {
 
         XmrAddressEntryList xmr_address_entry_list = 1001;
         SignedOfferList signed_offer_list = 1002;
+
+        EncryptedMoneroConnectionStore xmr_connection_store = 2001;
     }
 }
 
@@ -1688,6 +1690,21 @@ message TradingPeer {
     string deposit_tx_hash = 1008;
     string deposit_tx_hex = 1009;
     string deposit_tx_key = 1010;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// Monero Connections
+///////////////////////////////////////////////////////////////////////////////////////////
+
+message EncryptedMoneroConnectionStore {
+    repeated EncryptedMoneroConnection items = 1;
+}
+
+message EncryptedMoneroConnection {
+    string uri = 1;
+    string username = 2;
+    bytes encryptedPassword = 3;
+    int32 priority = 4;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

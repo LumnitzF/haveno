@@ -522,7 +522,7 @@ message GetNewDepositSubaddressRequest {
 }
 
 message GetNewDepositSubaddressReply {
-     string subaddress = 1;
+    string subaddress = 1;
 }
 
 message GetXmrTxsRequest {
@@ -693,6 +693,39 @@ message AddressBalanceInfo {
     int64 balance = 2;
     int64 num_confirmations = 3;
     bool is_address_unused = 4;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// MoneroConnections
+///////////////////////////////////////////////////////////////////////////////////////////
+
+service MoneroConnections {
+    rpc AddConnection (AddConnectionRequest) returns (AddConnectionResponse) {
+    }
+}
+
+
+message AddConnectionRequest {
+    string uri = 1;
+    string username = 2;
+    string password = 3;
+    int32 priority = 4; // the higher the number, the higher the relative priority
+}
+
+message AddConnectionResponse {}
+
+message UriConnection {
+    string uri = 1;
+    string username = 2;
+    string password = 3;
+    int32 priority = 4; // the higher the number, the higher the relative priority
+    bool isOnline = 5;// whether or not the daemon is online
+    enum AuthenticationStatus {
+        NO_AUTHENTICATION = 0;
+        AUTHENTICATED = 1;
+        NOT_AUTHENTICATED = 2;
+    }
+    AuthenticationStatus authenticated = 6;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

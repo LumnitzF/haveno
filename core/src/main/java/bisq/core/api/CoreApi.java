@@ -46,6 +46,8 @@ import javax.inject.Singleton;
 
 import com.google.common.util.concurrent.FutureCallback;
 
+import java.net.URI;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -81,6 +83,7 @@ public class CoreApi {
     private final CoreWalletsService walletsService;
     private final TradeStatisticsManager tradeStatisticsManager;
     private final CoreNotificationService notificationService;
+    private final CoreMoneroConnectionsService coreMoneroConnectionsService;
 
     @Inject
     public CoreApi(Config config,
@@ -92,7 +95,8 @@ public class CoreApi {
                    CoreTradesService coreTradesService,
                    CoreWalletsService walletsService,
                    TradeStatisticsManager tradeStatisticsManager,
-                   CoreNotificationService notificationService) {
+                   CoreNotificationService notificationService,
+                   CoreMoneroConnectionsService coreMoneroConnectionsService) {
         this.config = config;
         this.coreDisputeAgentsService = coreDisputeAgentsService;
         this.coreHelpService = coreHelpService;
@@ -103,6 +107,7 @@ public class CoreApi {
         this.walletsService = walletsService;
         this.tradeStatisticsManager = tradeStatisticsManager;
         this.notificationService = notificationService;
+        this.coreMoneroConnectionsService = coreMoneroConnectionsService;
     }
 
     @SuppressWarnings("SameReturnValue")
@@ -397,5 +402,13 @@ public class CoreApi {
 
     public int getNumConfirmationsForMostRecentTransaction(String addressString) {
         return walletsService.getNumConfirmationsForMostRecentTransaction(addressString);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // MoneroConnections
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    public void addConnection(URI uri, String username, String password, int priority) {
+        coreMoneroConnectionsService.addConnection(uri, username, password, priority);
     }
 }
