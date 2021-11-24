@@ -38,7 +38,6 @@ import bisq.network.p2p.network.BridgeAddressProvider;
 import bisq.network.p2p.network.NetworkFilter;
 import bisq.network.p2p.seed.SeedNodeRepository;
 
-import bisq.common.app.AppModule;
 import bisq.common.config.Config;
 import bisq.common.crypto.PubKeyRing;
 import bisq.common.crypto.PubKeyRingProvider;
@@ -52,7 +51,7 @@ import java.io.File;
 import static bisq.common.config.Config.*;
 import static com.google.inject.name.Names.named;
 
-public class CoreModule extends AppModule {
+public class CoreModule extends BaseModule {
 
     public CoreModule(Config config) {
         super(config);
