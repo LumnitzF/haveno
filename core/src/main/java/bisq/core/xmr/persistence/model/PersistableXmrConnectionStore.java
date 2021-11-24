@@ -13,15 +13,19 @@ import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 
+import java.net.URI;
+
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PersistableXmrConnectionStore implements PersistableEnvelope, PersistedDataHost {
 
     transient private PersistenceManager<PersistableXmrConnectionStore> persistenceManager;
 
-    private final List<PersistableXmrDaemonConnection> items = new CopyOnWriteArrayList<>();
+    private final Map<URI, PersistableXmrDaemonConnection> items = new HashMap<>();
 
     @Inject
     public PersistableXmrConnectionStore(PersistenceManager<PersistableXmrConnectionStore> persistenceManager) {
@@ -30,29 +34,38 @@ public class PersistableXmrConnectionStore implements PersistableEnvelope, Persi
     }
 
     private PersistableXmrConnectionStore(List<PersistableXmrDaemonConnection> items) {
-        this.items.addAll(items);
+        this.items.putAll(items.stream().collect(Collectors.toMap(PersistableXmrDaemonConnection::getUri, Function.identity())));
     }
 
     @Override
     public void readPersisted(Runnable completeHandler) {
         persistenceManager.readPersisted(persistedConnectionStore -> {
             items.clear();
-            items.addAll(persistedConnectionStore.items);
+            items.putAll(persistedConnectionStore.items);
             completeHandler.run();
         }, completeHandler);
     }
 
-    public List<PersistableXmrDaemonConnection> getItems() {
-        return ImmutableList.copyOf(items);
+    public List<PersistableXmrDaemonConnection> getConnections() {
+        return ImmutableList.copyOf(items.values());
     }
 
     public void addConnection(PersistableXmrDaemonConnection connection) {
-        // TODO
+        PersistableXmrDaemonConnection currentValue = items.putIfAbsent(connection.getUri(), connection);
+        if (currentValue != null) {
+            throw new IllegalStateException(String.format("There exists already an connection for \"%s\"", connection.getUri()));
+        }
+    }
+
+    public void removeConnection(URI connection) {
+        items.remove(connection);
     }
 
     @Override
     public Message toProtoMessage() {
-        List<EncryptedMoneroConnection> connections = items.stream().map(PersistableXmrDaemonConnection::toProtoMessage).collect(Collectors.toList());
+        // TODO: does this need to be synchronized?
+        List<EncryptedMoneroConnection> connections = items.values().stream()
+                .map(PersistableXmrDaemonConnection::toProtoMessage).collect(Collectors.toList());
         return protobuf.PersistableEnvelope.newBuilder()
                 .setXmrConnectionStore(EncryptedMoneroConnectionStore.newBuilder()
                         .addAllItems(connections))

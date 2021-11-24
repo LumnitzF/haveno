@@ -8,9 +8,11 @@ import com.google.protobuf.ByteString;
 
 import java.net.URI;
 
+import lombok.Builder;
 import lombok.Value;
 
 @Value
+@Builder(toBuilder = true)
 public class PersistableXmrDaemonConnection implements PersistablePayload {
 
     URI uri;
