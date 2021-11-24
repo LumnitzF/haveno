@@ -702,30 +702,141 @@ message AddressBalanceInfo {
 service MoneroConnections {
     rpc AddConnection (AddConnectionRequest) returns (AddConnectionResponse) {
     }
+
+    rpc RemoveConnection(RemoveConnectionRequest) returns (RemoveConnectionResponse) {
+    }
+
+    rpc GetConnection(GetConnectionRequest) returns (GetConnectionResponse) {
+    }
+
+    rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsResponse) {
+    }
+
+    rpc SetConnection(SetConnectionRequest) returns (SetConnectionResponse) {
+    }
+
+    rpc ExtendedSetConnection(ExtendedSetConnectionRequest) returns (ExtendedSetConnectionResponse) {
+    }
+
+    rpc CheckCurrentConnection(CheckCurrentConnectionRequest) returns (CheckCurrentConnectionResponse) {
+    }
+
+    rpc CheckConnection(CheckConnectionRequest) returns (CheckConnectionResponse) {
+    }
+
+    rpc CheckConnections(CheckConnectionsRequest) returns (CheckConnectionsResponse) {
+    }
+
+    rpc StartCheckingConnections(StartCheckingConnectionsRequest) returns (StartCheckingConnectionsResponse) {
+    }
+
+    rpc StopCheckingConnections(StopCheckingConnectionsRequest) returns (StopCheckingConnectionsResponse) {
+    }
+
+    rpc GetBestAvailableConnection(GetBestAvailableConnectionRequest) returns (GetBestAvailableConnectionResponse) {
+    }
+
+    rpc SetAutoSwitch(SetAutoSwitchRequest) returns (SetAutoSwitchResponse) {
+    }
+
 }
 
 
 message AddConnectionRequest {
+    RequestUriConnection connection = 1;
+}
+
+message AddConnectionResponse {}
+
+message RemoveConnectionRequest {
+    string uri = 1;
+}
+
+message RemoveConnectionResponse {}
+
+message GetConnectionRequest {}
+
+message GetConnectionResponse {
+    ResponseUriConnection connection = 1;
+}
+
+message GetConnectionsRequest {}
+
+message GetConnectionsResponse {
+    repeated ResponseUriConnection connections = 1;
+}
+
+message SetConnectionRequest {
+    string uri = 1;
+}
+
+message SetConnectionResponse {}
+
+message ExtendedSetConnectionRequest {
+    RequestUriConnection connection = 1;
+}
+
+message ExtendedSetConnectionResponse {}
+
+message CheckCurrentConnectionRequest {}
+
+message CheckCurrentConnectionResponse {
+    ResponseUriConnection connection = 1;
+}
+
+message CheckConnectionRequest {
+    RequestUriConnection connection = 1;
+}
+
+message CheckConnectionResponse {
+    ResponseUriConnection connection = 1;
+}
+
+message CheckConnectionsRequest {}
+
+message CheckConnectionsResponse {
+    repeated ResponseUriConnection connections = 1;
+}
+
+message StartCheckingConnectionsRequest {
+    int32 refreshPeriod = 1; // milliseconds
+}
+
+message StartCheckingConnectionsResponse {}
+
+message StopCheckingConnectionsRequest {}
+
+message StopCheckingConnectionsResponse {}
+
+message GetBestAvailableConnectionRequest {}
+
+message GetBestAvailableConnectionResponse {
+    ResponseUriConnection connection = 1;
+}
+
+message SetAutoSwitchRequest {
+    bool autoSwitch = 1;
+}
+
+message SetAutoSwitchResponse {}
+
+message RequestUriConnection {
     string uri = 1;
     string username = 2;
     string password = 3;
     int32 priority = 4; // the higher the number, the higher the relative priority
 }
 
-message AddConnectionResponse {}
-
-message UriConnection {
+message ResponseUriConnection {
     string uri = 1;
-    string username = 2;
-    string password = 3;
-    int32 priority = 4; // the higher the number, the higher the relative priority
-    bool isOnline = 5;// whether or not the daemon is online
+    int32 priority = 2; // the higher the number, the higher the relative priority
+    bool isOnline = 3;// whether or not the daemon is online
     enum AuthenticationStatus {
         NO_AUTHENTICATION = 0;
         AUTHENTICATED = 1;
         NOT_AUTHENTICATED = 2;
     }
-    AuthenticationStatus authenticated = 6;
+    AuthenticationStatus authenticated = 4;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -5,11 +5,14 @@ import bisq.core.xmr.model.XmrDaemonConnection;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import java.time.Duration;
+
 import java.net.URI;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.extern.slf4j.Slf4j;
 
 
 
@@ -21,6 +24,8 @@ import monero.common.MoneroRpcConnection;
 @Singleton
 public class XmrDaemonConnectionManager {
 
+    // TODO: add synchronisation
+
     private final MoneroConnectionManager connectionManager;
 
     @Inject
@@ -30,7 +35,7 @@ public class XmrDaemonConnectionManager {
 
     public void addConnection(XmrDaemonConnection connection) {
         try {
-            connectionManager.addConnection(toInternalConnection(connection));
+            connectionManager.addConnection(toMoneroRpcConnection(connection));
         } catch (MoneroError error) {
             // TODO: connection already exists
         }
@@ -48,8 +53,72 @@ public class XmrDaemonConnectionManager {
         }
     }
 
-    @NotNull
-    private MoneroRpcConnection toInternalConnection(XmrDaemonConnection connection) {
-        return new MoneroRpcConnection(connection.getUri(), connection.getUsername(), connection.getPassword()).setPriority(connection.getPriority());
+    public XmrDaemonConnection getConnection() {
+        return toXmrDaemonConnection(connectionManager.getConnection());
+    }
+
+    public List<XmrDaemonConnection> getConnections() {
+        return connectionManager.getConnections().stream().map(this::toXmrDaemonConnection).collect(Collectors.toList());
+    }
+
+    public void setConnection(URI connectionUri) {
+        connectionManager.setConnection(connectionUri.toString());
+    }
+
+    public void setConnection(XmrDaemonConnection connection) {
+        connectionManager.setConnection(toMoneroRpcConnection(connection));
+    }
+
+    public XmrDaemonConnection checkConnection() {
+        connectionManager.checkConnection();
+        return getConnection();
+    }
+
+    public XmrDaemonConnection checkConnection(XmrDaemonConnection connection) {
+        MoneroRpcConnection rpcConnection = toMoneroRpcConnection(connection);
+        rpcConnection.checkConnection(connectionManager.getTimeout());
+        return toXmrDaemonConnection(rpcConnection);
+    }
+
+    public List<XmrDaemonConnection> checkConnections() {
+        connectionManager.checkConnections();
+        return getConnections();
+    }
+
+    public void startCheckingConnection(Duration refreshPeriod) {
+        connectionManager.startCheckingConnection(refreshPeriod == null ? null : refreshPeriod.toMillis());
+    }
+
+    public void stopCheckingConnection() {
+        connectionManager.stopCheckingConnection();
+    }
+
+    public XmrDaemonConnection getBestAvailableConnection() {
+        return toXmrDaemonConnection(connectionManager.getBestAvailableConnection());
+    }
+
+    public void setAutoSwitch(boolean autoSwitch) {
+        connectionManager.setAutoSwitch(autoSwitch);
+    }
+
+    private XmrDaemonConnection toXmrDaemonConnection(MoneroRpcConnection moneroRpcConnection) {
+        XmrDaemonConnection.AuthenticationStatus authenticationStatus;
+        if (moneroRpcConnection.getPassword() == null || moneroRpcConnection.isAuthenticated() == null) {
+            authenticationStatus = XmrDaemonConnection.AuthenticationStatus.NO_AUTHENTICATION;
+        } else if (moneroRpcConnection.isAuthenticated()) {
+            authenticationStatus = XmrDaemonConnection.AuthenticationStatus.AUTHENTICATED;
+        } else {
+            authenticationStatus = XmrDaemonConnection.AuthenticationStatus.NOT_AUTHENTICATED;
+        }
+        return XmrDaemonConnection.builder()
+                .uri(URI.create(moneroRpcConnection.getUri()))
+                .priority(moneroRpcConnection.getPriority())
+                .online(moneroRpcConnection.isOnline())
+                .authenticationStatus(authenticationStatus)
+                .build();
+    }
+
+    private MoneroRpcConnection toMoneroRpcConnection(XmrDaemonConnection xmrDaemonConnection) {
+        return new MoneroRpcConnection(xmrDaemonConnection.getUri(), xmrDaemonConnection.getUsername(), xmrDaemonConnection.getPassword()).setPriority(xmrDaemonConnection.getPriority());
     }
 }

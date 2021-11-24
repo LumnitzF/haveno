@@ -18,10 +18,37 @@
 package bisq.daemon.grpc;
 
 import bisq.core.api.CoreApi;
+import bisq.core.xmr.model.XmrDaemonConnection;
 
 import bisq.proto.grpc.AddConnectionRequest;
 import bisq.proto.grpc.AddConnectionResponse;
+import bisq.proto.grpc.CheckConnectionRequest;
+import bisq.proto.grpc.CheckConnectionResponse;
+import bisq.proto.grpc.CheckConnectionsRequest;
+import bisq.proto.grpc.CheckConnectionsResponse;
+import bisq.proto.grpc.CheckCurrentConnectionRequest;
+import bisq.proto.grpc.CheckCurrentConnectionResponse;
+import bisq.proto.grpc.ExtendedSetConnectionRequest;
+import bisq.proto.grpc.ExtendedSetConnectionResponse;
+import bisq.proto.grpc.GetBestAvailableConnectionRequest;
+import bisq.proto.grpc.GetBestAvailableConnectionResponse;
+import bisq.proto.grpc.GetConnectionRequest;
+import bisq.proto.grpc.GetConnectionResponse;
+import bisq.proto.grpc.GetConnectionsRequest;
+import bisq.proto.grpc.GetConnectionsResponse;
 import bisq.proto.grpc.MoneroConnectionsGrpc;
+import bisq.proto.grpc.RemoveConnectionRequest;
+import bisq.proto.grpc.RemoveConnectionResponse;
+import bisq.proto.grpc.RequestUriConnection;
+import bisq.proto.grpc.ResponseUriConnection;
+import bisq.proto.grpc.SetAutoSwitchRequest;
+import bisq.proto.grpc.SetAutoSwitchResponse;
+import bisq.proto.grpc.SetConnectionRequest;
+import bisq.proto.grpc.SetConnectionResponse;
+import bisq.proto.grpc.StartCheckingConnectionsRequest;
+import bisq.proto.grpc.StartCheckingConnectionsResponse;
+import bisq.proto.grpc.StopCheckingConnectionsRequest;
+import bisq.proto.grpc.StopCheckingConnectionsResponse;
 
 import io.grpc.stub.StreamObserver;
 
@@ -29,6 +56,9 @@ import javax.inject.Inject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,19 +78,168 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsGrpc.MoneroConnectio
     public void addConnection(AddConnectionRequest request,
                               StreamObserver<AddConnectionResponse> responseObserver) {
         try {
-            URI uri = new URI(request.getUri());
-            String username = nullIfEmpty(request.getUsername());
-            String password = nullIfEmpty(request.getPassword());
-            coreApi.addConnection(uri, username, password, request.getPriority());
+            coreApi.addConnection(toXmrDaemonConnection(request.getConnection()));
             var reply = AddConnectionResponse.newBuilder().build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         } catch (URISyntaxException cause) {
-            // TODO: invalid URI provided
-            exceptionHandler.handleException(log, cause, responseObserver);
+            handleUriSyntaxException(responseObserver, cause);
         } catch (Throwable cause) {
-            exceptionHandler.handleException(log, cause, responseObserver);
+            handleGenericException(responseObserver, cause);
         }
+    }
+
+    @Override
+    public void removeConnection(RemoveConnectionRequest request,
+                                 StreamObserver<RemoveConnectionResponse> responseObserver) {
+        try {
+            coreApi.removeConnection(toURI(request.getUri()));
+            var reply = RemoveConnectionResponse.newBuilder().build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        } catch (URISyntaxException cause) {
+            handleUriSyntaxException(responseObserver, cause);
+        } catch (Throwable cause) {
+            handleGenericException(responseObserver, cause);
+        }
+    }
+
+    @Override
+    public void getConnection(GetConnectionRequest request,
+                              StreamObserver<GetConnectionResponse> responseObserver) {
+        try {
+            ResponseUriConnection responseConnection = toResponseUriConnection(coreApi.getConnection());
+            var reply = GetConnectionResponse.newBuilder().setConnection(responseConnection).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        } catch (Throwable cause) {
+            handleGenericException(responseObserver, cause);
+        }
+    }
+
+    @Override
+    public void getConnections(GetConnectionsRequest request,
+                               StreamObserver<GetConnectionsResponse> responseObserver) {
+        try {
+            List<XmrDaemonConnection> connections = coreApi.getConnections();
+            List<ResponseUriConnection> responseConnections = connections.stream().map(GrpcMoneroConnectionsService::toResponseUriConnection).collect(Collectors.toList());
+            var reply = GetConnectionsResponse.newBuilder().addAllConnections(responseConnections).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        } catch (Throwable cause) {
+            handleGenericException(responseObserver, cause);
+        }
+    }
+
+    @Override
+    public void setConnection(SetConnectionRequest request,
+                              StreamObserver<SetConnectionResponse> responseObserver) {
+        try {
+            coreApi.setConnection(toURI(request.getUri()));
+            var reply = SetConnectionResponse.newBuilder().build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        } catch (URISyntaxException cause) {
+            handleUriSyntaxException(responseObserver, cause);
+        } catch (Throwable cause) {
+            handleGenericException(responseObserver, cause);
+        }
+        super.setConnection(request, responseObserver);
+    }
+
+    @Override
+    public void extendedSetConnection(ExtendedSetConnectionRequest request,
+                                      StreamObserver<ExtendedSetConnectionResponse> responseObserver) {
+        super.extendedSetConnection(request, responseObserver);
+    }
+
+    @Override
+    public void checkCurrentConnection(CheckCurrentConnectionRequest request,
+                                       StreamObserver<CheckCurrentConnectionResponse> responseObserver) {
+        super.checkCurrentConnection(request, responseObserver);
+    }
+
+    @Override
+    public void checkConnection(CheckConnectionRequest request,
+                                StreamObserver<CheckConnectionResponse> responseObserver) {
+        super.checkConnection(request, responseObserver);
+    }
+
+    @Override
+    public void checkConnections(CheckConnectionsRequest request,
+                                 StreamObserver<CheckConnectionsResponse> responseObserver) {
+        super.checkConnections(request, responseObserver);
+    }
+
+    @Override
+    public void startCheckingConnections(StartCheckingConnectionsRequest request,
+                                         StreamObserver<StartCheckingConnectionsResponse> responseObserver) {
+        super.startCheckingConnections(request, responseObserver);
+    }
+
+    @Override
+    public void stopCheckingConnections(StopCheckingConnectionsRequest request,
+                                        StreamObserver<StopCheckingConnectionsResponse> responseObserver) {
+        super.stopCheckingConnections(request, responseObserver);
+    }
+
+    @Override
+    public void getBestAvailableConnection(GetBestAvailableConnectionRequest request,
+                                           StreamObserver<GetBestAvailableConnectionResponse> responseObserver) {
+        super.getBestAvailableConnection(request, responseObserver);
+    }
+
+    @Override
+    public void setAutoSwitch(SetAutoSwitchRequest request,
+                              StreamObserver<SetAutoSwitchResponse> responseObserver) {
+        super.setAutoSwitch(request, responseObserver);
+    }
+
+    private void handleUriSyntaxException(StreamObserver<?> responseObserver, URISyntaxException cause) {
+        // TODO: Different error handling?
+        handleGenericException(responseObserver, cause);
+    }
+
+    private void handleGenericException(StreamObserver<?> responseObserver, Throwable cause) {
+        exceptionHandler.handleException(log, cause, responseObserver);
+    }
+
+    private static ResponseUriConnection toResponseUriConnection(XmrDaemonConnection xmrDaemonConnection) {
+        return ResponseUriConnection.newBuilder()
+                .setUri(xmrDaemonConnection.getUri().toString())
+                .setPriority(xmrDaemonConnection.getPriority())
+                .setIsOnline(xmrDaemonConnection.isOnline())
+                .setAuthenticated(toAuthenticationStatus(xmrDaemonConnection.getAuthenticationStatus()))
+                .build();
+    }
+
+    private static ResponseUriConnection.AuthenticationStatus toAuthenticationStatus(XmrDaemonConnection.AuthenticationStatus authenticationStatus) {
+        switch (authenticationStatus) {
+            case NO_AUTHENTICATION:
+                return ResponseUriConnection.AuthenticationStatus.NO_AUTHENTICATION;
+            case AUTHENTICATED:
+                return ResponseUriConnection.AuthenticationStatus.AUTHENTICATED;
+            case NOT_AUTHENTICATED:
+                return ResponseUriConnection.AuthenticationStatus.NOT_AUTHENTICATED;
+            default:
+                throw new UnsupportedOperationException(String.format("Unsupported authentication status %s", authenticationStatus));
+        }
+    }
+
+    private static XmrDaemonConnection toXmrDaemonConnection(RequestUriConnection connection) throws URISyntaxException {
+        return XmrDaemonConnection.builder()
+                .uri(toURI(connection.getUri()))
+                .priority(connection.getPriority())
+                .username(nullIfEmpty(connection.getUsername()))
+                .password(nullIfEmpty(connection.getPassword()))
+                .build();
+    }
+
+    private static URI toURI(String uri) throws URISyntaxException {
+        if (uri.isEmpty()) {
+            throw new IllegalArgumentException("URI is required");
+        }
+        return new URI(uri);
     }
 
     private static String nullIfEmpty(String value) {

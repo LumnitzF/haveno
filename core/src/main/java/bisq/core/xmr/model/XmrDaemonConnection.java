@@ -14,5 +14,11 @@ public class XmrDaemonConnection {
     String password;
     int priority;
     boolean online;
-    Boolean authenticated;
+    AuthenticationStatus authenticationStatus;
+
+    public enum AuthenticationStatus {
+        NO_AUTHENTICATION,
+        AUTHENTICATED,
+        NOT_AUTHENTICATED
+    }
 }
