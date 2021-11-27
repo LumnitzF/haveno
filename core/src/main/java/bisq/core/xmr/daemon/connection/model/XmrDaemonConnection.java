@@ -1,4 +1,4 @@
-package bisq.core.xmr.model;
+package bisq.core.xmr.daemon.connection.model;
 
 import java.net.URI;
 

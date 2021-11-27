@@ -30,7 +30,7 @@ import bisq.core.payment.payload.PaymentMethod;
 import bisq.core.trade.Trade;
 import bisq.core.trade.statistics.TradeStatistics3;
 import bisq.core.trade.statistics.TradeStatisticsManager;
-import bisq.core.xmr.model.XmrDaemonConnection;
+import bisq.core.xmr.daemon.connection.model.XmrDaemonConnection;
 
 import bisq.common.app.Version;
 import bisq.common.config.Config;

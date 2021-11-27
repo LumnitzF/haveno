@@ -1,10 +1,10 @@
-package bisq.core.xmr.persistence;
+package bisq.core.xmr.daemon.connection.persistence;
 
 import bisq.core.api.CoreAccountService;
 import bisq.core.util.Initializable;
-import bisq.core.xmr.model.XmrDaemonConnection;
-import bisq.core.xmr.persistence.model.PersistableXmrConnectionStore;
-import bisq.core.xmr.persistence.model.PersistableXmrDaemonConnection;
+import bisq.core.xmr.daemon.connection.model.XmrDaemonConnection;
+import bisq.core.xmr.daemon.connection.persistence.model.PersistableXmrConnectionStore;
+import bisq.core.xmr.daemon.connection.persistence.model.PersistableXmrDaemonConnection;
 
 import bisq.common.crypto.CryptoException;
 import bisq.common.crypto.Encryption;

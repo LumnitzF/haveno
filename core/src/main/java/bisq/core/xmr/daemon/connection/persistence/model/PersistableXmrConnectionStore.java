@@ -1,4 +1,4 @@
-package bisq.core.xmr.persistence.model;
+package bisq.core.xmr.daemon.connection.persistence.model;
 
 import bisq.common.persistence.PersistenceManager;
 import bisq.common.proto.persistable.PersistableEnvelope;

@@ -1,6 +1,6 @@
 package bisq.core.xmr.daemon.connection;
 
-import bisq.core.xmr.model.XmrDaemonConnection;
+import bisq.core.xmr.daemon.connection.model.XmrDaemonConnection;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

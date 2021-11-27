@@ -34,7 +34,7 @@ import bisq.core.trade.statistics.TradeStatistics2Store;
 import bisq.core.trade.statistics.TradeStatistics3Store;
 import bisq.core.user.PreferencesPayload;
 import bisq.core.user.UserPayload;
-import bisq.core.xmr.persistence.model.PersistableXmrConnectionStore;
+import bisq.core.xmr.daemon.connection.persistence.model.PersistableXmrConnectionStore;
 
 import bisq.network.p2p.mailbox.IgnoredMailboxMap;
 import bisq.network.p2p.mailbox.MailboxMessageList;

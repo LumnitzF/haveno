@@ -18,7 +18,7 @@
 package bisq.daemon.grpc;
 
 import bisq.core.api.CoreApi;
-import bisq.core.xmr.model.XmrDaemonConnection;
+import bisq.core.xmr.daemon.connection.model.XmrDaemonConnection;
 
 import bisq.proto.grpc.AddConnectionRequest;
 import bisq.proto.grpc.AddConnectionResponse;

@@ -3,8 +3,8 @@ package bisq.core.api;
 import bisq.core.btc.setup.WalletConfig;
 import bisq.core.util.Initializable;
 import bisq.core.xmr.daemon.connection.XmrDaemonConnectionManager;
-import bisq.core.xmr.model.XmrDaemonConnection;
-import bisq.core.xmr.persistence.XmrConnectionStore;
+import bisq.core.xmr.daemon.connection.model.XmrDaemonConnection;
+import bisq.core.xmr.daemon.connection.persistence.XmrConnectionStore;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
