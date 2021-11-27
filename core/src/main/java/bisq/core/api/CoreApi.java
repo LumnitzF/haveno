@@ -411,10 +411,6 @@ public class CoreApi {
     // MoneroConnections
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    public void addConnection(URI uri, String username, String password, int priority) {
-        coreMoneroConnectionsService.addConnection(uri, username, password, priority);
-    }
-
     public void addConnection(XmrDaemonConnection connection) {
         coreMoneroConnectionsService.addConnection(connection);
     }

@@ -29,11 +29,6 @@ class CoreMoneroConnectionsService {
         this.connectionStore = connectionStore;
     }
 
-    void addConnection(URI connectionUri, String username, String password, int priority) {
-        XmrDaemonConnection connection = XmrDaemonConnection.builder().uri(connectionUri).username(username).password(password).priority(priority).build();
-        addConnection(connection);
-    }
-
     void addConnection(XmrDaemonConnection connection) {
         connectionStore.addConnection(connection);
         daemonConnectionManager.addConnection(connection);
