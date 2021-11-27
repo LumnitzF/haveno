@@ -79,112 +79,134 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsGrpc.MoneroConnectio
     @Override
     public void addConnection(AddConnectionRequest request,
                               StreamObserver<AddConnectionResponse> responseObserver) {
-        try {
+        handleRequest(responseObserver, () -> {
             coreApi.addConnection(toXmrDaemonConnection(request.getConnection()));
-            var reply = AddConnectionResponse.newBuilder().build();
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
-        } catch (URISyntaxException cause) {
-            handleUriSyntaxException(responseObserver, cause);
-        } catch (Throwable cause) {
-            handleGenericException(responseObserver, cause);
-        }
+            return AddConnectionResponse.newBuilder().build();
+        });
     }
 
     @Override
     public void removeConnection(RemoveConnectionRequest request,
                                  StreamObserver<RemoveConnectionResponse> responseObserver) {
-        try {
+        handleRequest(responseObserver, () -> {
             coreApi.removeConnection(toURI(request.getUri()));
-            var reply = RemoveConnectionResponse.newBuilder().build();
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
-        } catch (URISyntaxException cause) {
-            handleUriSyntaxException(responseObserver, cause);
-        } catch (Throwable cause) {
-            handleGenericException(responseObserver, cause);
-        }
+            return RemoveConnectionResponse.newBuilder().build();
+        });
     }
 
     @Override
     public void getConnection(GetConnectionRequest request,
                               StreamObserver<GetConnectionResponse> responseObserver) {
-        try {
+        handleRequest(responseObserver, () -> {
             ResponseUriConnection responseConnection = toResponseUriConnection(coreApi.getConnection());
-            var reply = GetConnectionResponse.newBuilder().setConnection(responseConnection).build();
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
-        } catch (Throwable cause) {
-            handleGenericException(responseObserver, cause);
-        }
+            return GetConnectionResponse.newBuilder().setConnection(responseConnection).build();
+        });
     }
 
     @Override
     public void getConnections(GetConnectionsRequest request,
                                StreamObserver<GetConnectionsResponse> responseObserver) {
-        try {
+        handleRequest(responseObserver, () -> {
             List<XmrDaemonConnection> connections = coreApi.getConnections();
             List<ResponseUriConnection> responseConnections = connections.stream().map(GrpcMoneroConnectionsService::toResponseUriConnection).collect(Collectors.toList());
-            var reply = GetConnectionsResponse.newBuilder().addAllConnections(responseConnections).build();
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
-        } catch (Throwable cause) {
-            handleGenericException(responseObserver, cause);
-        }
+            return GetConnectionsResponse.newBuilder().addAllConnections(responseConnections).build();
+        });
     }
 
     @Override
     public void setConnection(SetConnectionRequest request,
                               StreamObserver<SetConnectionResponse> responseObserver) {
-        try {
+        handleRequest(responseObserver, () -> {
             coreApi.setConnection(toURI(request.getUri()));
-            var reply = SetConnectionResponse.newBuilder().build();
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
-        } catch (URISyntaxException cause) {
-            handleUriSyntaxException(responseObserver, cause);
-        } catch (Throwable cause) {
-            handleGenericException(responseObserver, cause);
-        }
+            return SetConnectionResponse.newBuilder().build();
+        });
     }
 
     @Override
     public void extendedSetConnection(ExtendedSetConnectionRequest request,
                                       StreamObserver<ExtendedSetConnectionResponse> responseObserver) {
-        try {
+        handleRequest(responseObserver, () -> {
             coreApi.setConnection(toXmrDaemonConnection(request.getConnection()));
-            var reply = ExtendedSetConnectionResponse.newBuilder().build();
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
-        } catch (URISyntaxException cause) {
-            handleUriSyntaxException(responseObserver, cause);
-        } catch (Throwable cause) {
-            handleGenericException(responseObserver, cause);
-        }
+            return ExtendedSetConnectionResponse.newBuilder().build();
+
+        });
     }
 
     @Override
     public void checkCurrentConnection(CheckCurrentConnectionRequest request,
                                        StreamObserver<CheckCurrentConnectionResponse> responseObserver) {
-        try {
+        handleRequest(responseObserver, () -> {
             XmrDaemonConnection connection = coreApi.checkConnection();
-            var reply = CheckCurrentConnectionResponse.newBuilder()
+            return CheckCurrentConnectionResponse.newBuilder()
                     .setConnection(toResponseUriConnection(connection)).build();
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
-        } catch (Throwable cause) {
-            handleGenericException(responseObserver, cause);
-        }
+        });
     }
 
     @Override
     public void checkConnection(CheckConnectionRequest request,
                                 StreamObserver<CheckConnectionResponse> responseObserver) {
-        try {
+        handleRequest(responseObserver, () -> {
             XmrDaemonConnection connection = coreApi.checkConnection(toXmrDaemonConnection(request.getConnection()));
-            var reply = CheckConnectionResponse.newBuilder()
+            return CheckConnectionResponse.newBuilder()
                     .setConnection(toResponseUriConnection(connection)).build();
-            responseObserver.onNext(reply);
+        });
+    }
+
+    @Override
+    public void checkConnections(CheckConnectionsRequest request,
+                                 StreamObserver<CheckConnectionsResponse> responseObserver) {
+        handleRequest(responseObserver, () -> {
+            List<XmrDaemonConnection> connections = coreApi.checkConnections();
+            List<ResponseUriConnection> responseConnections = connections.stream()
+                    .map(GrpcMoneroConnectionsService::toResponseUriConnection).collect(Collectors.toList());
+            return CheckConnectionsResponse.newBuilder().addAllConnections(responseConnections).build();
+        });
+    }
+
+    @Override
+    public void startCheckingConnections(StartCheckingConnectionsRequest request,
+                                         StreamObserver<StartCheckingConnectionsResponse> responseObserver) {
+        handleRequest(responseObserver, () -> {
+            int refreshMillis = request.getRefreshPeriod();
+            Duration refreshPeriod = refreshMillis == 0 ? null : Duration.ofMillis(refreshMillis);
+            coreApi.startCheckingConnection(refreshPeriod);
+            return StartCheckingConnectionsResponse.newBuilder().build();
+        });
+    }
+
+    @Override
+    public void stopCheckingConnections(StopCheckingConnectionsRequest request,
+                                        StreamObserver<StopCheckingConnectionsResponse> responseObserver) {
+        handleRequest(responseObserver, () -> {
+            coreApi.stopCheckingConnection();
+            return StopCheckingConnectionsResponse.newBuilder().build();
+        });
+    }
+
+    @Override
+    public void getBestAvailableConnection(GetBestAvailableConnectionRequest request,
+                                           StreamObserver<GetBestAvailableConnectionResponse> responseObserver) {
+        handleRequest(responseObserver, () -> {
+            XmrDaemonConnection connection = coreApi.getBestAvailableConnection();
+            return GetBestAvailableConnectionResponse.newBuilder()
+                    .setConnection(toResponseUriConnection(connection)).build();
+        });
+    }
+
+    @Override
+    public void setAutoSwitch(SetAutoSwitchRequest request,
+                              StreamObserver<SetAutoSwitchResponse> responseObserver) {
+        handleRequest(responseObserver, () -> {
+            coreApi.setAutoSwitch(request.getAutoSwitch());
+            return SetAutoSwitchResponse.newBuilder().build();
+        });
+    }
+
+    private <_Response> void handleRequest(StreamObserver<_Response> responseObserver,
+                                           RpcRequestHandler<_Response> handler) {
+        try {
+            _Response response = handler.handleRequest();
+            responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (URISyntaxException cause) {
             handleUriSyntaxException(responseObserver, cause);
@@ -193,75 +215,9 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsGrpc.MoneroConnectio
         }
     }
 
-    @Override
-    public void checkConnections(CheckConnectionsRequest request,
-                                 StreamObserver<CheckConnectionsResponse> responseObserver) {
-        try {
-            List<XmrDaemonConnection> connections = coreApi.checkConnections();
-            List<ResponseUriConnection> responseConnections = connections.stream()
-                    .map(GrpcMoneroConnectionsService::toResponseUriConnection).collect(Collectors.toList());
-            var reply = CheckConnectionsResponse.newBuilder().addAllConnections(responseConnections).build();
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
-        } catch (Throwable cause) {
-            handleGenericException(responseObserver, cause);
-        }
-    }
-
-    @Override
-    public void startCheckingConnections(StartCheckingConnectionsRequest request,
-                                         StreamObserver<StartCheckingConnectionsResponse> responseObserver) {
-        try {
-            int refreshMillis = request.getRefreshPeriod();
-            Duration refreshPeriod = refreshMillis == 0 ? null : Duration.ofMillis(refreshMillis);
-            coreApi.startCheckingConnection(refreshPeriod);
-            var reply = StartCheckingConnectionsResponse.newBuilder().build();
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
-        } catch (Throwable cause) {
-            handleGenericException(responseObserver, cause);
-        }
-    }
-
-    @Override
-    public void stopCheckingConnections(StopCheckingConnectionsRequest request,
-                                        StreamObserver<StopCheckingConnectionsResponse> responseObserver) {
-        try {
-            coreApi.stopCheckingConnection();
-            var reply = StopCheckingConnectionsResponse.newBuilder().build();
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
-        } catch (Throwable cause) {
-            handleGenericException(responseObserver, cause);
-        }
-    }
-
-    @Override
-    public void getBestAvailableConnection(GetBestAvailableConnectionRequest request,
-                                           StreamObserver<GetBestAvailableConnectionResponse> responseObserver) {
-        try {
-            XmrDaemonConnection connection = coreApi.getBestAvailableConnection();
-            var reply = GetBestAvailableConnectionResponse.newBuilder()
-                    .setConnection(toResponseUriConnection(connection)).build();
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
-        } catch (Throwable cause) {
-            handleGenericException(responseObserver, cause);
-        }
-    }
-
-    @Override
-    public void setAutoSwitch(SetAutoSwitchRequest request,
-                              StreamObserver<SetAutoSwitchResponse> responseObserver) {
-        try {
-            coreApi.setAutoSwitch(request.getAutoSwitch());
-
-            var reply = SetAutoSwitchResponse.newBuilder().build();
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
-        } catch (Throwable cause) {
-            handleGenericException(responseObserver, cause);
-        }
+    @FunctionalInterface
+    private interface RpcRequestHandler<_Response> {
+        _Response handleRequest() throws Exception;
     }
 
     private void handleUriSyntaxException(StreamObserver<?> responseObserver, URISyntaxException cause) {
