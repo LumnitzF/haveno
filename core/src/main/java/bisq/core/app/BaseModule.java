@@ -24,13 +24,13 @@ public class BaseModule extends AppModule {
 
     protected void addInitializableSupport() {
         final InjectionListener<Initializable> injectionListener = Initializable::initialize;
-        TypeListener disposableListener = new TypeListener() {
+        TypeListener initializableListener = new TypeListener() {
             @Override
             public <I> void hear(TypeLiteral<I> type, TypeEncounter<I> encounter) {
                 if (Initializable.class.isAssignableFrom(type.getRawType())) {
                     @SuppressWarnings("unchecked")
-                    TypeEncounter<Initializable> disposableEncounter = (TypeEncounter<Initializable>) encounter;
-                    disposableEncounter.register(injectionListener);
+                    TypeEncounter<Initializable> initializableEncounter = (TypeEncounter<Initializable>) encounter;
+                    initializableEncounter.register(injectionListener);
                 }
             }
         };
@@ -40,7 +40,7 @@ public class BaseModule extends AppModule {
                 return Initializable.class.isAssignableFrom(typeLiteral.getRawType());
             }
 
-        }, disposableListener);
+        }, initializableListener);
 
     }
 }

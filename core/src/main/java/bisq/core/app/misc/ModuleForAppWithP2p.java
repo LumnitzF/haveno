@@ -61,6 +61,7 @@ public class ModuleForAppWithP2p extends BaseModule {
 
     @Override
     protected void configure() {
+        super.configure();
         bind(Config.class).toInstance(config);
 
         bind(KeyStorage.class).in(Singleton.class);

@@ -60,6 +60,7 @@ public class CoreModule extends BaseModule {
 
     @Override
     protected void configure() {
+        super.configure();
         bind(Config.class).toInstance(config);
 
         bind(BridgeAddressProvider.class).to(Preferences.class);
