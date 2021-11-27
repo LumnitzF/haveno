@@ -54,6 +54,8 @@ import io.grpc.stub.StreamObserver;
 
 import javax.inject.Inject;
 
+import java.time.Duration;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -144,55 +146,122 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsGrpc.MoneroConnectio
         } catch (Throwable cause) {
             handleGenericException(responseObserver, cause);
         }
-        super.setConnection(request, responseObserver);
     }
 
     @Override
     public void extendedSetConnection(ExtendedSetConnectionRequest request,
                                       StreamObserver<ExtendedSetConnectionResponse> responseObserver) {
-        super.extendedSetConnection(request, responseObserver);
+        try {
+            coreApi.setConnection(toXmrDaemonConnection(request.getConnection()));
+            var reply = ExtendedSetConnectionResponse.newBuilder().build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        } catch (URISyntaxException cause) {
+            handleUriSyntaxException(responseObserver, cause);
+        } catch (Throwable cause) {
+            handleGenericException(responseObserver, cause);
+        }
     }
 
     @Override
     public void checkCurrentConnection(CheckCurrentConnectionRequest request,
                                        StreamObserver<CheckCurrentConnectionResponse> responseObserver) {
-        super.checkCurrentConnection(request, responseObserver);
+        try {
+            XmrDaemonConnection connection = coreApi.checkConnection();
+            var reply = CheckCurrentConnectionResponse.newBuilder()
+                    .setConnection(toResponseUriConnection(connection)).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        } catch (Throwable cause) {
+            handleGenericException(responseObserver, cause);
+        }
     }
 
     @Override
     public void checkConnection(CheckConnectionRequest request,
                                 StreamObserver<CheckConnectionResponse> responseObserver) {
-        super.checkConnection(request, responseObserver);
+        try {
+            XmrDaemonConnection connection = coreApi.checkConnection(toXmrDaemonConnection(request.getConnection()));
+            var reply = CheckConnectionResponse.newBuilder()
+                    .setConnection(toResponseUriConnection(connection)).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        } catch (URISyntaxException cause) {
+            handleUriSyntaxException(responseObserver, cause);
+        } catch (Throwable cause) {
+            handleGenericException(responseObserver, cause);
+        }
     }
 
     @Override
     public void checkConnections(CheckConnectionsRequest request,
                                  StreamObserver<CheckConnectionsResponse> responseObserver) {
-        super.checkConnections(request, responseObserver);
+        try {
+            List<XmrDaemonConnection> connections = coreApi.checkConnections();
+            List<ResponseUriConnection> responseConnections = connections.stream()
+                    .map(GrpcMoneroConnectionsService::toResponseUriConnection).collect(Collectors.toList());
+            var reply = CheckConnectionsResponse.newBuilder().addAllConnections(responseConnections).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        } catch (Throwable cause) {
+            handleGenericException(responseObserver, cause);
+        }
     }
 
     @Override
     public void startCheckingConnections(StartCheckingConnectionsRequest request,
                                          StreamObserver<StartCheckingConnectionsResponse> responseObserver) {
-        super.startCheckingConnections(request, responseObserver);
+        try {
+            int refreshMillis = request.getRefreshPeriod();
+            Duration refreshPeriod = refreshMillis == 0 ? null : Duration.ofMillis(refreshMillis);
+            coreApi.startCheckingConnection(refreshPeriod);
+            var reply = StartCheckingConnectionsResponse.newBuilder().build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        } catch (Throwable cause) {
+            handleGenericException(responseObserver, cause);
+        }
     }
 
     @Override
     public void stopCheckingConnections(StopCheckingConnectionsRequest request,
                                         StreamObserver<StopCheckingConnectionsResponse> responseObserver) {
-        super.stopCheckingConnections(request, responseObserver);
+        try {
+            coreApi.stopCheckingConnection();
+            var reply = StopCheckingConnectionsResponse.newBuilder().build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        } catch (Throwable cause) {
+            handleGenericException(responseObserver, cause);
+        }
     }
 
     @Override
     public void getBestAvailableConnection(GetBestAvailableConnectionRequest request,
                                            StreamObserver<GetBestAvailableConnectionResponse> responseObserver) {
-        super.getBestAvailableConnection(request, responseObserver);
+        try {
+            XmrDaemonConnection connection = coreApi.getBestAvailableConnection();
+            var reply = GetBestAvailableConnectionResponse.newBuilder()
+                    .setConnection(toResponseUriConnection(connection)).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        } catch (Throwable cause) {
+            handleGenericException(responseObserver, cause);
+        }
     }
 
     @Override
     public void setAutoSwitch(SetAutoSwitchRequest request,
                               StreamObserver<SetAutoSwitchResponse> responseObserver) {
-        super.setAutoSwitch(request, responseObserver);
+        try {
+            coreApi.setAutoSwitch(request.getAutoSwitch());
+
+            var reply = SetAutoSwitchResponse.newBuilder().build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        } catch (Throwable cause) {
+            handleGenericException(responseObserver, cause);
+        }
     }
 
     private void handleUriSyntaxException(StreamObserver<?> responseObserver, URISyntaxException cause) {
