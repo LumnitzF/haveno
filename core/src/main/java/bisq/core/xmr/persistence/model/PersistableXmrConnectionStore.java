@@ -50,6 +50,10 @@ public class PersistableXmrConnectionStore implements PersistableEnvelope, Persi
         return ImmutableList.copyOf(items.values());
     }
 
+    public boolean hasConnection(URI connection) {
+        return items.containsKey(connection);
+    }
+
     public void addConnection(PersistableXmrDaemonConnection connection) {
         PersistableXmrDaemonConnection currentValue = items.putIfAbsent(connection.getUri(), connection);
         if (currentValue != null) {

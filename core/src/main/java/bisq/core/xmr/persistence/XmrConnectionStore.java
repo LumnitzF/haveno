@@ -18,7 +18,9 @@ import java.net.URI;
 
 import java.nio.charset.StandardCharsets;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +47,18 @@ public class XmrConnectionStore implements Initializable {
         accountService.addPasswordChangeListener(this::onPasswordChange);
         synchronized (lock) {
             encryptionKey = toSecretKey(accountService.getPassword());
+        }
+    }
+
+    public boolean hasConnection(URI connection) {
+        synchronized (lock) {
+            return store.hasConnection(connection);
+        }
+    }
+
+    public List<XmrDaemonConnection> getAllConnections() {
+        synchronized (lock) {
+            return store.getConnections().stream().map(this::toXmrDaemonConnection).collect(Collectors.toList());
         }
     }
 
@@ -133,8 +147,22 @@ public class XmrConnectionStore implements Initializable {
                 .encryptedPassword(encryptedPassword).build();
     }
 
+    private XmrDaemonConnection toXmrDaemonConnection(PersistableXmrDaemonConnection connection) {
+        return XmrDaemonConnection.builder()
+                .uri(connection.getUri())
+                .username(connection.getUsername())
+                .priority(connection.getPriority())
+                .password(decryptPassword(connection.getEncryptedPassword()))
+                .build();
+    }
+
     @Nullable
     private byte[] encryptPassword(String password) {
         return password != null ? encrypt(password.getBytes(StandardCharsets.UTF_8), encryptionKey) : null;
+    }
+
+    @Nullable
+    private String decryptPassword(byte[] encypted) {
+        return encypted != null ? new String(decrypt(encypted, encryptionKey), StandardCharsets.UTF_8) : null;
     }
 }

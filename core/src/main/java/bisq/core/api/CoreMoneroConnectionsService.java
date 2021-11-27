@@ -1,5 +1,7 @@
 package bisq.core.api;
 
+import bisq.core.btc.setup.WalletConfig;
+import bisq.core.util.Initializable;
 import bisq.core.xmr.daemon.connection.XmrDaemonConnectionManager;
 import bisq.core.xmr.model.XmrDaemonConnection;
 import bisq.core.xmr.persistence.XmrConnectionStore;
@@ -17,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Singleton
-class CoreMoneroConnectionsService {
+class CoreMoneroConnectionsService implements Initializable {
 
     private final XmrDaemonConnectionManager daemonConnectionManager;
     private final XmrConnectionStore connectionStore;
@@ -27,6 +29,27 @@ class CoreMoneroConnectionsService {
                                         XmrConnectionStore connectionStore) {
         this.daemonConnectionManager = daemonConnectionManager;
         this.connectionStore = connectionStore;
+    }
+
+    @Override
+    public void initialize() {
+        loadConnectionsFromStore();
+        addDefaultConnection();
+    }
+
+    private void loadConnectionsFromStore() {
+        connectionStore.getAllConnections().forEach(daemonConnectionManager::addConnection);
+    }
+
+    private void addDefaultConnection() {
+        URI defaultUri = URI.create(WalletConfig.MONERO_DAEMON_URI);
+        if (!connectionStore.hasConnection(defaultUri)) {
+            addConnection(XmrDaemonConnection.builder()
+                    .uri(defaultUri)
+                    .username(WalletConfig.MONERO_DAEMON_USERNAME)
+                    .password(WalletConfig.MONERO_DAEMON_PASSWORD)
+                    .build());
+        }
     }
 
     void addConnection(XmrDaemonConnection connection) {
