@@ -50,6 +50,7 @@ import bisq.proto.grpc.StartCheckingConnectionsResponse;
 import bisq.proto.grpc.StopCheckingConnectionsRequest;
 import bisq.proto.grpc.StopCheckingConnectionsResponse;
 
+import io.grpc.ServerInterceptor;
 import io.grpc.stub.StreamObserver;
 
 import javax.inject.Inject;
@@ -59,10 +60,21 @@ import java.time.Duration;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
+
+import static bisq.daemon.grpc.interceptor.GrpcServiceRateMeteringConfig.getCustomRateMeteringInterceptor;
+import static bisq.proto.grpc.MoneroConnectionsGrpc.*;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+
+
+import bisq.daemon.grpc.interceptor.CallRateMeteringInterceptor;
+import bisq.daemon.grpc.interceptor.GrpcCallRateMeter;
 
 @Slf4j
 class GrpcMoneroConnectionsService extends MoneroConnectionsGrpc.MoneroConnectionsImplBase {
@@ -272,5 +284,33 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsGrpc.MoneroConnectio
             return null;
         }
         return value;
+    }
+
+
+    final ServerInterceptor[] interceptors() {
+        Optional<ServerInterceptor> rateMeteringInterceptor = rateMeteringInterceptor();
+        return rateMeteringInterceptor.map(serverInterceptor ->
+                new ServerInterceptor[]{serverInterceptor}).orElseGet(() -> new ServerInterceptor[0]);
+    }
+
+    private Optional<ServerInterceptor> rateMeteringInterceptor() {
+        return getCustomRateMeteringInterceptor(coreApi.getConfig().appDataDir, this.getClass())
+                .or(() -> Optional.of(CallRateMeteringInterceptor.valueOf(
+                        new HashMap<>() {{
+                            put(getAddConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                            put(getRemoveConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                            put(getGetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                            put(getGetConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                            put(getSetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                            put(getExtendedSetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                            put(getCheckCurrentConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                            put(getCheckConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                            put(getCheckConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                            put(getStartCheckingConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                            put(getStopCheckingConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                            put(getGetBestAvailableConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                            put(getSetAutoSwitchMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                        }}
+                )));
     }
 }
