@@ -61,6 +61,10 @@ public class PersistableXmrConnectionStore implements PersistableEnvelope, Persi
         items.remove(connection);
     }
 
+    public void requestPersistence() {
+        persistenceManager.requestPersistence();
+    }
+
     @Override
     public Message toProtoMessage() {
         // TODO: does this need to be synchronized?

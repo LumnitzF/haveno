@@ -66,9 +66,11 @@ public class XmrConnectionStore implements Initializable {
             SecretKey oldSecret = encryptionKey;
             assert Objects.equals(oldSecret, toSecretKey(oldPassword)) : "Old secret does not match old password";
 
+            // TODO: Should this be done in some background thread?
             encryptionKey = toSecretKey(newPassword);
             reEncryptStore(store, oldSecret, encryptionKey);
         }
+        store.requestPersistence();
     }
 
     private SecretKey toSecretKey(String password) {
