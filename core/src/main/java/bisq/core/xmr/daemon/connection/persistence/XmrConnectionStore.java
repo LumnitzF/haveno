@@ -88,12 +88,14 @@ public class XmrConnectionStore implements Initializable {
             PersistableXmrDaemonConnection persistableConnection = toPersistableConnection(connection);
             store.addConnection(persistableConnection);
         }
+        store.requestPersistence();
     }
 
     public void removeConnection(URI connection) {
         synchronized (lock) {
             store.removeConnection(connection);
         }
+        store.requestPersistence();
     }
 
     private void onPasswordChange(String oldPassword, String newPassword) {
