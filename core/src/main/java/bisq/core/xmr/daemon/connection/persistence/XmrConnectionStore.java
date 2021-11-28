@@ -1,6 +1,7 @@
 package bisq.core.xmr.daemon.connection.persistence;
 
 import bisq.core.api.CoreAccountService;
+import bisq.core.crypto.ScryptUtil;
 import bisq.core.util.Initializable;
 import bisq.core.xmr.daemon.connection.model.XmrDaemonConnection;
 import bisq.core.xmr.daemon.connection.persistence.model.PersistableXmrConnectionStore;
@@ -8,6 +9,10 @@ import bisq.core.xmr.daemon.connection.persistence.model.PersistableXmrDaemonCon
 
 import bisq.common.crypto.CryptoException;
 import bisq.common.crypto.Encryption;
+
+import com.google.protobuf.ByteString;
+
+import org.bitcoinj.crypto.KeyCrypterScrypt;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -33,6 +38,8 @@ public class XmrConnectionStore implements Initializable {
 
     private final CoreAccountService accountService;
 
+    private KeyCrypterScrypt keyCrypterScrypt;
+
     private SecretKey encryptionKey;
 
     @Inject
@@ -46,7 +53,21 @@ public class XmrConnectionStore implements Initializable {
     public void initialize() {
         accountService.addPasswordChangeListener(this::onPasswordChange);
         synchronized (lock) {
+            setupStore();
             encryptionKey = toSecretKey(accountService.getPassword());
+        }
+    }
+
+    private void setupStore() {
+        this.keyCrypterScrypt = ScryptUtil.getKeyCrypterScrypt();
+        byte[] storedSalt = store.getSalt();
+        if (storedSalt != null) {
+            this.keyCrypterScrypt = new KeyCrypterScrypt(keyCrypterScrypt.getScryptParameters()
+                    .toBuilder()
+                    .setSalt(ByteString.copyFrom(storedSalt))
+                    .build());
+        } else {
+            store.setSalt(keyCrypterScrypt.getScryptParameters().getSalt().toByteArray());
         }
     }
 
@@ -91,7 +112,7 @@ public class XmrConnectionStore implements Initializable {
         if (password == null) {
             return null;
         }
-        return Encryption.getSecretKeyFromBytes(password.getBytes(StandardCharsets.UTF_8));
+        return Encryption.getSecretKeyFromBytes(keyCrypterScrypt.deriveKey(password).getKey());
     }
 
     private static void reEncryptStore(PersistableXmrConnectionStore store,

@@ -7,6 +7,7 @@ import bisq.common.proto.persistable.PersistedDataHost;
 import protobuf.EncryptedMoneroConnection;
 import protobuf.EncryptedMoneroConnectionStore;
 
+import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 
 import javax.inject.Inject;
@@ -25,6 +26,8 @@ public class PersistableXmrConnectionStore implements PersistableEnvelope, Persi
 
     transient private PersistenceManager<PersistableXmrConnectionStore> persistenceManager;
 
+    private byte[] salt;
+
     private final Map<URI, PersistableXmrDaemonConnection> items = new HashMap<>();
 
     @Inject
@@ -33,13 +36,15 @@ public class PersistableXmrConnectionStore implements PersistableEnvelope, Persi
         persistenceManager.initialize(this, "XmrDaemonConnections", PersistenceManager.Source.PRIVATE);
     }
 
-    private PersistableXmrConnectionStore(List<PersistableXmrDaemonConnection> items) {
+    private PersistableXmrConnectionStore(byte[] salt, List<PersistableXmrDaemonConnection> items) {
+        this.salt = salt;
         this.items.putAll(items.stream().collect(Collectors.toMap(PersistableXmrDaemonConnection::getUri, Function.identity())));
     }
 
     @Override
     public void readPersisted(Runnable completeHandler) {
         persistenceManager.readPersisted(persistedConnectionStore -> {
+            salt = persistedConnectionStore.salt;
             items.clear();
             items.putAll(persistedConnectionStore.items);
             completeHandler.run();
@@ -65,6 +70,14 @@ public class PersistableXmrConnectionStore implements PersistableEnvelope, Persi
         items.remove(connection);
     }
 
+    public byte[] getSalt() {
+        return salt;
+    }
+
+    public void setSalt(byte[] salt) {
+        this.salt = salt;
+    }
+
     public void requestPersistence() {
         persistenceManager.requestPersistence();
     }
@@ -76,6 +89,7 @@ public class PersistableXmrConnectionStore implements PersistableEnvelope, Persi
                 .map(PersistableXmrDaemonConnection::toProtoMessage).collect(Collectors.toList());
         return protobuf.PersistableEnvelope.newBuilder()
                 .setXmrConnectionStore(EncryptedMoneroConnectionStore.newBuilder()
+                        .setSalt(ByteString.copyFrom(salt))
                         .addAllItems(connections))
                 .build();
     }
@@ -84,6 +98,6 @@ public class PersistableXmrConnectionStore implements PersistableEnvelope, Persi
         List<PersistableXmrDaemonConnection> items = proto.getItemsList().stream()
                 .map(PersistableXmrDaemonConnection::fromProto)
                 .collect(Collectors.toList());
-        return new PersistableXmrConnectionStore(items);
+        return new PersistableXmrConnectionStore(proto.getSalt().toByteArray(), items);
     }
 }

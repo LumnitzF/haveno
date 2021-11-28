@@ -1697,7 +1697,8 @@ message TradingPeer {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 message EncryptedMoneroConnectionStore {
-    repeated EncryptedMoneroConnection items = 1;
+    bytes salt = 1;
+    repeated EncryptedMoneroConnection items = 2;
 }
 
 message EncryptedMoneroConnection {
