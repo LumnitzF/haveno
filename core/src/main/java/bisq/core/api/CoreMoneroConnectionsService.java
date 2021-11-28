@@ -21,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 class CoreMoneroConnectionsService implements Initializable {
 
+    private final Object lock = new Object();
+
     private final MoneroConnectionManager connectionManager;
     private final MoneroConnectionStore connectionStore;
 
@@ -33,8 +35,10 @@ class CoreMoneroConnectionsService implements Initializable {
 
     @Override
     public void initialize() {
-        loadConnectionsFromStore();
-        addDefaultConnection();
+        synchronized (lock) {
+            loadConnectionsFromStore();
+            addDefaultConnection();
+        }
     }
 
     private void loadConnectionsFromStore() {
@@ -53,60 +57,88 @@ class CoreMoneroConnectionsService implements Initializable {
     }
 
     void addConnection(MoneroConnection connection) {
-        connectionStore.addConnection(connection);
-        connectionManager.addConnection(connection);
+        synchronized (lock) {
+            connectionStore.addConnection(connection);
+            connectionManager.addConnection(connection);
+        }
     }
 
     void removeConnection(URI connectionUri) {
-        connectionStore.removeConnection(connectionUri);
-        connectionManager.removeConnection(connectionUri);
+        synchronized (lock) {
+            connectionStore.removeConnection(connectionUri);
+            connectionManager.removeConnection(connectionUri);
+        }
     }
 
     public void removeConnection(MoneroConnection connection) {
-        removeConnection(connection.getUri());
+        synchronized (lock) {
+            removeConnection(connection.getUri());
+        }
     }
 
     MoneroConnection getConnection() {
-        return connectionManager.getConnection();
+        synchronized (lock) {
+            return connectionManager.getConnection();
+        }
     }
 
     public List<MoneroConnection> getConnections() {
-        return connectionManager.getConnections();
+        synchronized (lock) {
+            return connectionManager.getConnections();
+        }
     }
 
     public void setConnection(URI connectionUri) {
-        connectionManager.setConnection(connectionUri);
+        synchronized (lock) {
+            connectionManager.setConnection(connectionUri);
+        }
     }
 
     public void setConnection(MoneroConnection connection) {
-        connectionManager.setConnection(connection);
+        synchronized (lock) {
+            connectionManager.setConnection(connection);
+        }
     }
 
     public MoneroConnection checkConnection() {
-        return connectionManager.checkConnection();
+        synchronized (lock) {
+            return connectionManager.checkConnection();
+        }
     }
 
     public MoneroConnection checkConnection(MoneroConnection connection) {
-        return connectionManager.checkConnection(connection);
+        synchronized (lock) {
+            return connectionManager.checkConnection(connection);
+        }
     }
 
     public List<MoneroConnection> checkConnections() {
-        return connectionManager.checkConnections();
+        synchronized (lock) {
+            return connectionManager.checkConnections();
+        }
     }
 
     public void startCheckingConnection(Duration refreshPeriod) {
-        connectionManager.startCheckingConnection(refreshPeriod);
+        synchronized (lock) {
+            connectionManager.startCheckingConnection(refreshPeriod);
+        }
     }
 
     public void stopCheckingConnection() {
-        connectionManager.stopCheckingConnection();
+        synchronized (lock) {
+            connectionManager.stopCheckingConnection();
+        }
     }
 
     public MoneroConnection getBestAvailableConnection() {
-        return connectionManager.getBestAvailableConnection();
+        synchronized (lock) {
+            return connectionManager.getBestAvailableConnection();
+        }
     }
 
     public void setAutoSwitch(boolean autoSwitch) {
-        connectionManager.setAutoSwitch(autoSwitch);
+        synchronized (lock) {
+            connectionManager.setAutoSwitch(autoSwitch);
+        }
     }
 }

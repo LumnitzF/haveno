@@ -16,14 +16,13 @@ import lombok.extern.slf4j.Slf4j;
 
 
 
-import monero.common.MoneroError;
 import monero.common.MoneroRpcConnection;
 
 @Slf4j
 @Singleton
 public class MoneroConnectionManager {
 
-    // TODO: add synchronisation
+    private final Object lock = new Object();
 
     private final monero.common.MoneroConnectionManager connectionManager;
 
@@ -33,71 +32,90 @@ public class MoneroConnectionManager {
     }
 
     public void addConnection(MoneroConnection connection) {
-        try {
+        synchronized (lock) {
             connectionManager.addConnection(toMoneroRpcConnection(connection));
-        } catch (MoneroError error) {
-            // TODO: connection already exists
         }
     }
 
     public void removeConnection(MoneroConnection connection) {
-        removeConnection(connection.getUri());
+        synchronized (lock) {
+            removeConnection(connection.getUri());
+        }
     }
 
     public void removeConnection(URI uri) {
-        try {
+        synchronized (lock) {
             connectionManager.removeConnection(uri.toString());
-        } catch (MoneroError error) {
-            // TODO: connection did not exist
         }
     }
 
     public MoneroConnection getConnection() {
-        return toMoneroConnection(connectionManager.getConnection());
+        synchronized (lock) {
+            return toMoneroConnection(connectionManager.getConnection());
+        }
     }
 
     public List<MoneroConnection> getConnections() {
-        return connectionManager.getConnections().stream().map(this::toMoneroConnection).collect(Collectors.toList());
+        synchronized (lock) {
+            return connectionManager.getConnections().stream().map(this::toMoneroConnection).collect(Collectors.toList());
+        }
     }
 
     public void setConnection(URI connectionUri) {
-        connectionManager.setConnection(connectionUri.toString());
+        synchronized (lock) {
+            connectionManager.setConnection(connectionUri.toString());
+        }
     }
 
     public void setConnection(MoneroConnection connection) {
-        connectionManager.setConnection(toMoneroRpcConnection(connection));
+        synchronized (lock) {
+            connectionManager.setConnection(toMoneroRpcConnection(connection));
+        }
     }
 
     public MoneroConnection checkConnection() {
-        connectionManager.checkConnection();
-        return getConnection();
+        synchronized (lock) {
+            connectionManager.checkConnection();
+            return getConnection();
+        }
     }
 
     public MoneroConnection checkConnection(MoneroConnection connection) {
+        // No synchronisation needed, as no interaction with connectionManager
         MoneroRpcConnection rpcConnection = toMoneroRpcConnection(connection);
         rpcConnection.checkConnection(connectionManager.getTimeout());
         return toMoneroConnection(rpcConnection);
     }
 
     public List<MoneroConnection> checkConnections() {
-        connectionManager.checkConnections();
-        return getConnections();
+        synchronized (lock) {
+            connectionManager.checkConnections();
+            return getConnections();
+        }
     }
 
     public void startCheckingConnection(Duration refreshPeriod) {
-        connectionManager.startCheckingConnection(refreshPeriod == null ? null : refreshPeriod.toMillis());
+        synchronized (lock) {
+            connectionManager.startCheckingConnection(refreshPeriod == null ? null : refreshPeriod.toMillis());
+        }
     }
 
     public void stopCheckingConnection() {
-        connectionManager.stopCheckingConnection();
+        synchronized (lock) {
+            connectionManager.stopCheckingConnection();
+        }
     }
 
     public MoneroConnection getBestAvailableConnection() {
-        return toMoneroConnection(connectionManager.getBestAvailableConnection());
+        synchronized (lock) {
+            return toMoneroConnection(connectionManager.getBestAvailableConnection());
+        }
     }
 
     public void setAutoSwitch(boolean autoSwitch) {
-        connectionManager.setAutoSwitch(autoSwitch);
+        synchronized (lock) {
+            connectionManager.setAutoSwitch(autoSwitch);
+        }
     }
 
     private MoneroConnection toMoneroConnection(MoneroRpcConnection moneroRpcConnection) {

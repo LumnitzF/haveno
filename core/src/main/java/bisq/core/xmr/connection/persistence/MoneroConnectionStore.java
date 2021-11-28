@@ -51,10 +51,10 @@ public class MoneroConnectionStore implements Initializable {
 
     @Override
     public void initialize() {
-        accountService.addPasswordChangeListener(this::onPasswordChange);
         synchronized (lock) {
             setupStore();
             encryptionKey = toSecretKey(accountService.getPassword());
+            accountService.addPasswordChangeListener(this::onPasswordChange);
         }
     }
 

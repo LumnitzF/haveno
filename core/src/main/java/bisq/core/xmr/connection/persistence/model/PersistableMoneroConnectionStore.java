@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 
 public class PersistableMoneroConnectionStore implements PersistableEnvelope, PersistedDataHost {
 
+    transient private final Object lock = new Object();
+
     transient private PersistenceManager<PersistableMoneroConnectionStore> persistenceManager;
 
     private byte[] salt;
@@ -44,38 +46,53 @@ public class PersistableMoneroConnectionStore implements PersistableEnvelope, Pe
     @Override
     public void readPersisted(Runnable completeHandler) {
         persistenceManager.readPersisted(persistedConnectionStore -> {
-            salt = persistedConnectionStore.salt;
-            items.clear();
-            items.putAll(persistedConnectionStore.items);
+            synchronized (lock) {
+                salt = persistedConnectionStore.salt;
+                items.clear();
+                items.putAll(persistedConnectionStore.items);
+            }
             completeHandler.run();
         }, completeHandler);
     }
 
     public List<PersistableMoneroConnection> getConnections() {
-        return ImmutableList.copyOf(items.values());
+        synchronized (lock) {
+            return ImmutableList.copyOf(items.values());
+        }
     }
 
     public boolean hasConnection(URI connection) {
-        return items.containsKey(connection);
+        synchronized (lock) {
+            return items.containsKey(connection);
+        }
     }
 
     public void addConnection(PersistableMoneroConnection connection) {
-        PersistableMoneroConnection currentValue = items.putIfAbsent(connection.getUri(), connection);
+        PersistableMoneroConnection currentValue;
+        synchronized (lock) {
+            currentValue = items.putIfAbsent(connection.getUri(), connection);
+        }
         if (currentValue != null) {
             throw new IllegalStateException(String.format("There exists already an connection for \"%s\"", connection.getUri()));
         }
     }
 
     public void removeConnection(URI connection) {
-        items.remove(connection);
+        synchronized (lock) {
+            items.remove(connection);
+        }
     }
 
     public byte[] getSalt() {
-        return salt;
+        synchronized (lock) {
+            return salt;
+        }
     }
 
     public void setSalt(byte[] salt) {
-        this.salt = salt;
+        synchronized (lock) {
+            this.salt = salt;
+        }
     }
 
     public void requestPersistence() {
@@ -84,12 +101,16 @@ public class PersistableMoneroConnectionStore implements PersistableEnvelope, Pe
 
     @Override
     public Message toProtoMessage() {
-        // TODO: does this need to be synchronized?
-        List<EncryptedMoneroConnection> connections = items.values().stream()
-                .map(PersistableMoneroConnection::toProtoMessage).collect(Collectors.toList());
+        List<EncryptedMoneroConnection> connections;
+        ByteString saltString;
+        synchronized (lock) {
+            connections = items.values().stream()
+                    .map(PersistableMoneroConnection::toProtoMessage).collect(Collectors.toList());
+            saltString = ByteString.copyFrom(salt);
+        }
         return protobuf.PersistableEnvelope.newBuilder()
                 .setXmrConnectionStore(EncryptedMoneroConnectionStore.newBuilder()
-                        .setSalt(ByteString.copyFrom(salt))
+                        .setSalt(saltString)
                         .addAllItems(connections))
                 .build();
     }
