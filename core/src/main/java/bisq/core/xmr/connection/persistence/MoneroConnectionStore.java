@@ -141,6 +141,7 @@ public class MoneroConnectionStore implements Initializable {
     private static void reEncryptStore(PersistableMoneroConnectionStore store,
                                        SecretKey oldSecret,
                                        SecretKey newSecret) {
+        // TODO: This should probably lock the store in some way, so that it isn't persisted in-between
         for (PersistableMoneroConnection connection : store.getConnections()) {
             store.removeConnection(connection.getUri());
             store.addConnection(reEncrypt(connection, oldSecret, newSecret));
