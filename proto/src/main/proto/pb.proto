@@ -1705,7 +1705,8 @@ message EncryptedMoneroConnection {
     string uri = 1;
     string username = 2;
     bytes encryptedPassword = 3;
-    int32 priority = 4;
+    bytes encryptionSalt = 4;
+    int32 priority = 5;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

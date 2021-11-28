@@ -17,10 +17,8 @@ public class PersistableMoneroConnection implements PersistablePayload {
 
     URI uri;
     String username;
-    // TODO: current implementation this can be null
-    //  This may be a security risk, as a null value can be identified on the disk and used
-    //  Can also be "hidden" whether this value is actually set
     byte[] encryptedPassword;
+    byte[] encryptionSalt;
     int priority;
 
     @Override
@@ -29,6 +27,7 @@ public class PersistableMoneroConnection implements PersistablePayload {
                 .setUri(uri.toString())
                 .setUsername(username)
                 .setEncryptedPassword(ByteString.copyFrom(encryptedPassword))
+                .setEncryptionSalt(ByteString.copyFrom(encryptionSalt))
                 .setPriority(priority)
                 .build();
     }
@@ -38,6 +37,7 @@ public class PersistableMoneroConnection implements PersistablePayload {
                 URI.create(encryptedMoneroConnection.getUri()),
                 encryptedMoneroConnection.getUsername(),
                 encryptedMoneroConnection.getEncryptedPassword().toByteArray(),
+                encryptedMoneroConnection.getEncryptionSalt().toByteArray(),
                 encryptedMoneroConnection.getPriority());
     }
 }
