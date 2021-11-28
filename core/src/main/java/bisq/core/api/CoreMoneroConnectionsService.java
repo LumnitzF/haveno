@@ -82,61 +82,61 @@ class CoreMoneroConnectionsService implements Initializable {
         }
     }
 
-    public List<MoneroConnection> getConnections() {
+    List<MoneroConnection> getConnections() {
         synchronized (lock) {
             return connectionManager.getConnections();
         }
     }
 
-    public void setConnection(URI connectionUri) {
+    void setConnection(URI connectionUri) {
         synchronized (lock) {
             connectionManager.setConnection(connectionUri);
         }
     }
 
-    public void setConnection(MoneroConnection connection) {
+    void setConnection(MoneroConnection connection) {
         synchronized (lock) {
             connectionManager.setConnection(connection);
         }
     }
 
-    public MoneroConnection checkConnection() {
+    MoneroConnection checkConnection() {
         synchronized (lock) {
             return connectionManager.checkConnection();
         }
     }
 
-    public MoneroConnection checkConnection(MoneroConnection connection) {
+    MoneroConnection checkConnection(MoneroConnection connection) {
         synchronized (lock) {
             return connectionManager.checkConnection(connection);
         }
     }
 
-    public List<MoneroConnection> checkConnections() {
+    List<MoneroConnection> checkConnections() {
         synchronized (lock) {
             return connectionManager.checkConnections();
         }
     }
 
-    public void startCheckingConnection(Duration refreshPeriod) {
+    void startCheckingConnection(Duration refreshPeriod) {
         synchronized (lock) {
             connectionManager.startCheckingConnection(refreshPeriod);
         }
     }
 
-    public void stopCheckingConnection() {
+    void stopCheckingConnection() {
         synchronized (lock) {
             connectionManager.stopCheckingConnection();
         }
     }
 
-    public MoneroConnection getBestAvailableConnection() {
+    MoneroConnection getBestAvailableConnection() {
         synchronized (lock) {
             return connectionManager.getBestAvailableConnection();
         }
     }
 
-    public void setAutoSwitch(boolean autoSwitch) {
+    void setAutoSwitch(boolean autoSwitch) {
         synchronized (lock) {
             connectionManager.setAutoSwitch(autoSwitch);
         }
