@@ -34,7 +34,7 @@ import bisq.core.trade.statistics.TradeStatistics2Store;
 import bisq.core.trade.statistics.TradeStatistics3Store;
 import bisq.core.user.PreferencesPayload;
 import bisq.core.user.UserPayload;
-import bisq.core.xmr.daemon.connection.persistence.model.PersistableXmrConnectionStore;
+import bisq.core.xmr.connection.persistence.model.PersistableMoneroConnectionStore;
 
 import bisq.network.p2p.mailbox.IgnoredMailboxMap;
 import bisq.network.p2p.mailbox.MailboxMessageList;
@@ -117,7 +117,7 @@ public class CorePersistenceProtoResolver extends CoreProtoResolver implements P
                 case REMOVED_PAYLOADS_MAP:
                     return RemovedPayloadsMap.fromProto(proto.getRemovedPayloadsMap());
                 case XMR_CONNECTION_STORE:
-                    return PersistableXmrConnectionStore.fromProto(proto.getXmrConnectionStore());
+                    return PersistableMoneroConnectionStore.fromProto(proto.getXmrConnectionStore());
                 default:
                     throw new ProtobufferRuntimeException("Unknown proto message case(PB.PersistableEnvelope). " +
                             "messageCase=" + proto.getMessageCase() + "; proto raw data=" + proto.toString());

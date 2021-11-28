@@ -1,4 +1,4 @@
-package bisq.core.xmr.daemon.connection.model;
+package bisq.core.xmr.connection.model;
 
 import java.net.URI;
 
@@ -8,7 +8,7 @@ import lombok.Value;
 
 @Value
 @Builder
-public class XmrDaemonConnection {
+public class MoneroConnection {
     @NonNull URI uri;
     String username;
     String password;

@@ -1,4 +1,4 @@
-package bisq.core.xmr.daemon.connection.persistence.model;
+package bisq.core.xmr.connection.persistence.model;
 
 import bisq.common.persistence.PersistenceManager;
 import bisq.common.proto.persistable.PersistableEnvelope;
@@ -22,23 +22,23 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class PersistableXmrConnectionStore implements PersistableEnvelope, PersistedDataHost {
+public class PersistableMoneroConnectionStore implements PersistableEnvelope, PersistedDataHost {
 
-    transient private PersistenceManager<PersistableXmrConnectionStore> persistenceManager;
+    transient private PersistenceManager<PersistableMoneroConnectionStore> persistenceManager;
 
     private byte[] salt;
 
-    private final Map<URI, PersistableXmrDaemonConnection> items = new HashMap<>();
+    private final Map<URI, PersistableMoneroConnection> items = new HashMap<>();
 
     @Inject
-    public PersistableXmrConnectionStore(PersistenceManager<PersistableXmrConnectionStore> persistenceManager) {
+    public PersistableMoneroConnectionStore(PersistenceManager<PersistableMoneroConnectionStore> persistenceManager) {
         this.persistenceManager = persistenceManager;
         persistenceManager.initialize(this, "XmrDaemonConnections", PersistenceManager.Source.PRIVATE);
     }
 
-    private PersistableXmrConnectionStore(byte[] salt, List<PersistableXmrDaemonConnection> items) {
+    private PersistableMoneroConnectionStore(byte[] salt, List<PersistableMoneroConnection> items) {
         this.salt = salt;
-        this.items.putAll(items.stream().collect(Collectors.toMap(PersistableXmrDaemonConnection::getUri, Function.identity())));
+        this.items.putAll(items.stream().collect(Collectors.toMap(PersistableMoneroConnection::getUri, Function.identity())));
     }
 
     @Override
@@ -51,7 +51,7 @@ public class PersistableXmrConnectionStore implements PersistableEnvelope, Persi
         }, completeHandler);
     }
 
-    public List<PersistableXmrDaemonConnection> getConnections() {
+    public List<PersistableMoneroConnection> getConnections() {
         return ImmutableList.copyOf(items.values());
     }
 
@@ -59,8 +59,8 @@ public class PersistableXmrConnectionStore implements PersistableEnvelope, Persi
         return items.containsKey(connection);
     }
 
-    public void addConnection(PersistableXmrDaemonConnection connection) {
-        PersistableXmrDaemonConnection currentValue = items.putIfAbsent(connection.getUri(), connection);
+    public void addConnection(PersistableMoneroConnection connection) {
+        PersistableMoneroConnection currentValue = items.putIfAbsent(connection.getUri(), connection);
         if (currentValue != null) {
             throw new IllegalStateException(String.format("There exists already an connection for \"%s\"", connection.getUri()));
         }
@@ -86,7 +86,7 @@ public class PersistableXmrConnectionStore implements PersistableEnvelope, Persi
     public Message toProtoMessage() {
         // TODO: does this need to be synchronized?
         List<EncryptedMoneroConnection> connections = items.values().stream()
-                .map(PersistableXmrDaemonConnection::toProtoMessage).collect(Collectors.toList());
+                .map(PersistableMoneroConnection::toProtoMessage).collect(Collectors.toList());
         return protobuf.PersistableEnvelope.newBuilder()
                 .setXmrConnectionStore(EncryptedMoneroConnectionStore.newBuilder()
                         .setSalt(ByteString.copyFrom(salt))
@@ -94,10 +94,10 @@ public class PersistableXmrConnectionStore implements PersistableEnvelope, Persi
                 .build();
     }
 
-    public static PersistableXmrConnectionStore fromProto(protobuf.EncryptedMoneroConnectionStore proto) {
-        List<PersistableXmrDaemonConnection> items = proto.getItemsList().stream()
-                .map(PersistableXmrDaemonConnection::fromProto)
+    public static PersistableMoneroConnectionStore fromProto(protobuf.EncryptedMoneroConnectionStore proto) {
+        List<PersistableMoneroConnection> items = proto.getItemsList().stream()
+                .map(PersistableMoneroConnection::fromProto)
                 .collect(Collectors.toList());
-        return new PersistableXmrConnectionStore(proto.getSalt().toByteArray(), items);
+        return new PersistableMoneroConnectionStore(proto.getSalt().toByteArray(), items);
     }
 }

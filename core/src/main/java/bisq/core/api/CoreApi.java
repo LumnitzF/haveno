@@ -30,7 +30,7 @@ import bisq.core.payment.payload.PaymentMethod;
 import bisq.core.trade.Trade;
 import bisq.core.trade.statistics.TradeStatistics3;
 import bisq.core.trade.statistics.TradeStatisticsManager;
-import bisq.core.xmr.daemon.connection.model.XmrDaemonConnection;
+import bisq.core.xmr.connection.model.MoneroConnection;
 
 import bisq.common.app.Version;
 import bisq.common.config.Config;
@@ -411,59 +411,59 @@ public class CoreApi {
     // MoneroConnections
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    public void addConnection(XmrDaemonConnection connection) {
+    public void addMoneroConnection(MoneroConnection connection) {
         coreMoneroConnectionsService.addConnection(connection);
     }
 
-    public void removeConnection(URI connectionUri) {
+    public void removeMoneroConnection(URI connectionUri) {
         coreMoneroConnectionsService.removeConnection(connectionUri);
     }
 
-    public void removeConnection(XmrDaemonConnection connection) {
+    public void removeMoneroConnection(MoneroConnection connection) {
         coreMoneroConnectionsService.removeConnection(connection);
     }
 
-    public XmrDaemonConnection getConnection() {
+    public MoneroConnection getMoneroConnection() {
         return coreMoneroConnectionsService.getConnection();
     }
 
-    public List<XmrDaemonConnection> getConnections() {
+    public List<MoneroConnection> getMoneroConnections() {
         return coreMoneroConnectionsService.getConnections();
     }
 
-    public void setConnection(URI connectionUri) {
+    public void setMoneroConnection(URI connectionUri) {
         coreMoneroConnectionsService.setConnection(connectionUri);
     }
 
-    public void setConnection(XmrDaemonConnection connection) {
+    public void setMoneroConnection(MoneroConnection connection) {
         coreMoneroConnectionsService.setConnection(connection);
     }
 
-    public XmrDaemonConnection checkConnection() {
+    public MoneroConnection checkMoneroConnection() {
         return coreMoneroConnectionsService.checkConnection();
     }
 
-    public XmrDaemonConnection checkConnection(XmrDaemonConnection connection) {
+    public MoneroConnection checkMoneroConnection(MoneroConnection connection) {
         return coreMoneroConnectionsService.checkConnection(connection);
     }
 
-    public List<XmrDaemonConnection> checkConnections() {
+    public List<MoneroConnection> checkMoneroConnections() {
         return coreMoneroConnectionsService.checkConnections();
     }
 
-    public void startCheckingConnection(Duration refreshPeriod) {
+    public void startCheckingMoneroConnection(Duration refreshPeriod) {
         coreMoneroConnectionsService.startCheckingConnection(refreshPeriod);
     }
 
-    public void stopCheckingConnection() {
+    public void stopCheckingMoneroConnection() {
         coreMoneroConnectionsService.stopCheckingConnection();
     }
 
-    public XmrDaemonConnection getBestAvailableConnection() {
+    public MoneroConnection getBestAvailableMoneroConnection() {
         return coreMoneroConnectionsService.getBestAvailableConnection();
     }
 
-    public void setAutoSwitch(boolean autoSwitch) {
+    public void setMoneroConnectionAutoSwitch(boolean autoSwitch) {
         coreMoneroConnectionsService.setAutoSwitch(autoSwitch);
     }
 }

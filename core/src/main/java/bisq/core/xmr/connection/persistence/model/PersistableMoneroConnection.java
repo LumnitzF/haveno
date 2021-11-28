@@ -1,4 +1,4 @@
-package bisq.core.xmr.daemon.connection.persistence.model;
+package bisq.core.xmr.connection.persistence.model;
 
 import bisq.common.proto.persistable.PersistablePayload;
 
@@ -13,7 +13,7 @@ import lombok.Value;
 
 @Value
 @Builder(toBuilder = true)
-public class PersistableXmrDaemonConnection implements PersistablePayload {
+public class PersistableMoneroConnection implements PersistablePayload {
 
     URI uri;
     String username;
@@ -33,8 +33,8 @@ public class PersistableXmrDaemonConnection implements PersistablePayload {
                 .build();
     }
 
-    public static PersistableXmrDaemonConnection fromProto(EncryptedMoneroConnection encryptedMoneroConnection) {
-        return new PersistableXmrDaemonConnection(
+    public static PersistableMoneroConnection fromProto(EncryptedMoneroConnection encryptedMoneroConnection) {
+        return new PersistableMoneroConnection(
                 URI.create(encryptedMoneroConnection.getUri()),
                 encryptedMoneroConnection.getUsername(),
                 encryptedMoneroConnection.getEncryptedPassword().toByteArray(),

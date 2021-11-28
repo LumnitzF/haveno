@@ -1,11 +1,11 @@
-package bisq.core.xmr.daemon.connection.persistence;
+package bisq.core.xmr.connection.persistence;
 
 import bisq.core.api.CoreAccountService;
 import bisq.core.crypto.ScryptUtil;
 import bisq.core.util.Initializable;
-import bisq.core.xmr.daemon.connection.model.XmrDaemonConnection;
-import bisq.core.xmr.daemon.connection.persistence.model.PersistableXmrConnectionStore;
-import bisq.core.xmr.daemon.connection.persistence.model.PersistableXmrDaemonConnection;
+import bisq.core.xmr.connection.model.MoneroConnection;
+import bisq.core.xmr.connection.persistence.model.PersistableMoneroConnection;
+import bisq.core.xmr.connection.persistence.model.PersistableMoneroConnectionStore;
 
 import bisq.common.crypto.CryptoException;
 import bisq.common.crypto.Encryption;
@@ -30,11 +30,11 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
 
 @Singleton
-public class XmrConnectionStore implements Initializable {
+public class MoneroConnectionStore implements Initializable {
 
     private final Object lock = new Object();
 
-    private final PersistableXmrConnectionStore store;
+    private final PersistableMoneroConnectionStore store;
 
     private final CoreAccountService accountService;
 
@@ -43,7 +43,7 @@ public class XmrConnectionStore implements Initializable {
     private SecretKey encryptionKey;
 
     @Inject
-    public XmrConnectionStore(PersistableXmrConnectionStore store, CoreAccountService accountService) {
+    public MoneroConnectionStore(PersistableMoneroConnectionStore store, CoreAccountService accountService) {
         this.store = store;
         this.accountService = accountService;
     }
@@ -77,15 +77,15 @@ public class XmrConnectionStore implements Initializable {
         }
     }
 
-    public List<XmrDaemonConnection> getAllConnections() {
+    public List<MoneroConnection> getAllConnections() {
         synchronized (lock) {
-            return store.getConnections().stream().map(this::toXmrDaemonConnection).collect(Collectors.toList());
+            return store.getConnections().stream().map(this::toMoneroConnection).collect(Collectors.toList());
         }
     }
 
-    public void addConnection(XmrDaemonConnection connection) {
+    public void addConnection(MoneroConnection connection) {
         synchronized (lock) {
-            PersistableXmrDaemonConnection persistableConnection = toPersistableConnection(connection);
+            PersistableMoneroConnection persistableConnection = toPersistableMoneroConnection(connection);
             store.addConnection(persistableConnection);
         }
         store.requestPersistence();
@@ -117,17 +117,17 @@ public class XmrConnectionStore implements Initializable {
         return Encryption.getSecretKeyFromBytes(keyCrypterScrypt.deriveKey(password).getKey());
     }
 
-    private static void reEncryptStore(PersistableXmrConnectionStore store,
+    private static void reEncryptStore(PersistableMoneroConnectionStore store,
                                        SecretKey oldSecret,
                                        SecretKey newSecret) {
-        for (PersistableXmrDaemonConnection connection : store.getConnections()) {
+        for (PersistableMoneroConnection connection : store.getConnections()) {
             store.removeConnection(connection.getUri());
             store.addConnection(reEncrypt(connection, oldSecret, newSecret));
         }
     }
 
-    private static PersistableXmrDaemonConnection reEncrypt(PersistableXmrDaemonConnection connection,
-                                                            SecretKey oldSecret, SecretKey newSecret) {
+    private static PersistableMoneroConnection reEncrypt(PersistableMoneroConnection connection,
+                                                         SecretKey oldSecret, SecretKey newSecret) {
         return connection.toBuilder()
                 .encryptedPassword(reEncrypt(connection.getEncryptedPassword(), oldSecret, newSecret))
                 .build();
@@ -161,17 +161,17 @@ public class XmrConnectionStore implements Initializable {
         }
     }
 
-    private PersistableXmrDaemonConnection toPersistableConnection(XmrDaemonConnection connection) {
+    private PersistableMoneroConnection toPersistableMoneroConnection(MoneroConnection connection) {
         byte[] encryptedPassword = encryptPassword(connection.getPassword());
-        return PersistableXmrDaemonConnection.builder()
+        return PersistableMoneroConnection.builder()
                 .uri(connection.getUri())
                 .username(connection.getUsername())
                 .priority(connection.getPriority())
                 .encryptedPassword(encryptedPassword).build();
     }
 
-    private XmrDaemonConnection toXmrDaemonConnection(PersistableXmrDaemonConnection connection) {
-        return XmrDaemonConnection.builder()
+    private MoneroConnection toMoneroConnection(PersistableMoneroConnection connection) {
+        return MoneroConnection.builder()
                 .uri(connection.getUri())
                 .username(connection.getUsername())
                 .priority(connection.getPriority())

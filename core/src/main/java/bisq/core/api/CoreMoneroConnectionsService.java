@@ -2,9 +2,9 @@ package bisq.core.api;
 
 import bisq.core.btc.setup.WalletConfig;
 import bisq.core.util.Initializable;
-import bisq.core.xmr.daemon.connection.XmrDaemonConnectionManager;
-import bisq.core.xmr.daemon.connection.model.XmrDaemonConnection;
-import bisq.core.xmr.daemon.connection.persistence.XmrConnectionStore;
+import bisq.core.xmr.connection.MoneroConnectionManager;
+import bisq.core.xmr.connection.model.MoneroConnection;
+import bisq.core.xmr.connection.persistence.MoneroConnectionStore;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -21,13 +21,13 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 class CoreMoneroConnectionsService implements Initializable {
 
-    private final XmrDaemonConnectionManager daemonConnectionManager;
-    private final XmrConnectionStore connectionStore;
+    private final MoneroConnectionManager connectionManager;
+    private final MoneroConnectionStore connectionStore;
 
     @Inject
-    public CoreMoneroConnectionsService(XmrDaemonConnectionManager daemonConnectionManager,
-                                        XmrConnectionStore connectionStore) {
-        this.daemonConnectionManager = daemonConnectionManager;
+    public CoreMoneroConnectionsService(MoneroConnectionManager connectionManager,
+                                        MoneroConnectionStore connectionStore) {
+        this.connectionManager = connectionManager;
         this.connectionStore = connectionStore;
     }
 
@@ -38,13 +38,13 @@ class CoreMoneroConnectionsService implements Initializable {
     }
 
     private void loadConnectionsFromStore() {
-        connectionStore.getAllConnections().forEach(daemonConnectionManager::addConnection);
+        connectionStore.getAllConnections().forEach(connectionManager::addConnection);
     }
 
     private void addDefaultConnection() {
         URI defaultUri = URI.create(WalletConfig.MONERO_DAEMON_URI);
         if (!connectionStore.hasConnection(defaultUri)) {
-            addConnection(XmrDaemonConnection.builder()
+            addConnection(MoneroConnection.builder()
                     .uri(defaultUri)
                     .username(WalletConfig.MONERO_DAEMON_USERNAME)
                     .password(WalletConfig.MONERO_DAEMON_PASSWORD)
@@ -52,61 +52,61 @@ class CoreMoneroConnectionsService implements Initializable {
         }
     }
 
-    void addConnection(XmrDaemonConnection connection) {
+    void addConnection(MoneroConnection connection) {
         connectionStore.addConnection(connection);
-        daemonConnectionManager.addConnection(connection);
+        connectionManager.addConnection(connection);
     }
 
     void removeConnection(URI connectionUri) {
         connectionStore.removeConnection(connectionUri);
-        daemonConnectionManager.removeConnection(connectionUri);
+        connectionManager.removeConnection(connectionUri);
     }
 
-    public void removeConnection(XmrDaemonConnection connection) {
+    public void removeConnection(MoneroConnection connection) {
         removeConnection(connection.getUri());
     }
 
-    XmrDaemonConnection getConnection() {
-        return daemonConnectionManager.getConnection();
+    MoneroConnection getConnection() {
+        return connectionManager.getConnection();
     }
 
-    public List<XmrDaemonConnection> getConnections() {
-        return daemonConnectionManager.getConnections();
+    public List<MoneroConnection> getConnections() {
+        return connectionManager.getConnections();
     }
 
     public void setConnection(URI connectionUri) {
-        daemonConnectionManager.setConnection(connectionUri);
+        connectionManager.setConnection(connectionUri);
     }
 
-    public void setConnection(XmrDaemonConnection connection) {
-        daemonConnectionManager.setConnection(connection);
+    public void setConnection(MoneroConnection connection) {
+        connectionManager.setConnection(connection);
     }
 
-    public XmrDaemonConnection checkConnection() {
-        return daemonConnectionManager.checkConnection();
+    public MoneroConnection checkConnection() {
+        return connectionManager.checkConnection();
     }
 
-    public XmrDaemonConnection checkConnection(XmrDaemonConnection connection) {
-        return daemonConnectionManager.checkConnection(connection);
+    public MoneroConnection checkConnection(MoneroConnection connection) {
+        return connectionManager.checkConnection(connection);
     }
 
-    public List<XmrDaemonConnection> checkConnections() {
-        return daemonConnectionManager.checkConnections();
+    public List<MoneroConnection> checkConnections() {
+        return connectionManager.checkConnections();
     }
 
     public void startCheckingConnection(Duration refreshPeriod) {
-        daemonConnectionManager.startCheckingConnection(refreshPeriod);
+        connectionManager.startCheckingConnection(refreshPeriod);
     }
 
     public void stopCheckingConnection() {
-        daemonConnectionManager.stopCheckingConnection();
+        connectionManager.stopCheckingConnection();
     }
 
-    public XmrDaemonConnection getBestAvailableConnection() {
-        return daemonConnectionManager.getBestAvailableConnection();
+    public MoneroConnection getBestAvailableConnection() {
+        return connectionManager.getBestAvailableConnection();
     }
 
     public void setAutoSwitch(boolean autoSwitch) {
-        daemonConnectionManager.setAutoSwitch(autoSwitch);
+        connectionManager.setAutoSwitch(autoSwitch);
     }
 }
