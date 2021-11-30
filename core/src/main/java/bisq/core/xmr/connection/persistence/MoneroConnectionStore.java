@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
@@ -141,10 +142,16 @@ public class MoneroConnectionStore implements Initializable {
     private static void reEncryptStore(PersistableMoneroConnectionStore store,
                                        SecretKey oldSecret,
                                        SecretKey newSecret) {
-        // TODO: This should probably lock the store in some way, so that it isn't persisted in-between
-        for (PersistableMoneroConnection connection : store.getConnections()) {
-            store.removeConnection(connection.getUri());
-            store.addConnection(reEncrypt(connection, oldSecret, newSecret));
+        // Lock the store, so that it isn't persisted in some undefined state
+        Lock writeLock = store.getWriteLock();
+        writeLock.lock();
+        try {
+            for (PersistableMoneroConnection connection : store.getConnections()) {
+                store.removeConnection(connection.getUri());
+                store.addConnection(reEncrypt(connection, oldSecret, newSecret));
+            }
+        } finally {
+            writeLock.unlock();
         }
     }
 

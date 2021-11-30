@@ -19,12 +19,18 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PersistableMoneroConnectionStore implements PersistableEnvelope, PersistedDataHost {
 
-    transient private final Object lock = new Object();
+    transient private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+    transient private final Lock readLock = lock.readLock();
+    transient private final Lock writeLock = lock.writeLock();
 
     transient private PersistenceManager<PersistableMoneroConnectionStore> persistenceManager;
 
@@ -46,31 +52,43 @@ public class PersistableMoneroConnectionStore implements PersistableEnvelope, Pe
     @Override
     public void readPersisted(Runnable completeHandler) {
         persistenceManager.readPersisted(persistedConnectionStore -> {
-            synchronized (lock) {
+            writeLock.lock();
+            try {
                 salt = persistedConnectionStore.salt;
                 items.clear();
                 items.putAll(persistedConnectionStore.items);
+            } finally {
+                writeLock.unlock();
             }
             completeHandler.run();
         }, completeHandler);
     }
 
     public List<PersistableMoneroConnection> getConnections() {
-        synchronized (lock) {
+        readLock.lock();
+        try {
             return ImmutableList.copyOf(items.values());
+        } finally {
+            readLock.unlock();
         }
     }
 
     public boolean hasConnection(URI connection) {
-        synchronized (lock) {
+        readLock.lock();
+        try {
             return items.containsKey(connection);
+        } finally {
+            readLock.unlock();
         }
     }
 
     public void addConnection(PersistableMoneroConnection connection) {
         PersistableMoneroConnection currentValue;
-        synchronized (lock) {
+        writeLock.lock();
+        try {
             currentValue = items.putIfAbsent(connection.getUri(), connection);
+        } finally {
+            writeLock.unlock();
         }
         if (currentValue != null) {
             throw new IllegalStateException(String.format("There exists already an connection for \"%s\"", connection.getUri()));
@@ -78,20 +96,29 @@ public class PersistableMoneroConnectionStore implements PersistableEnvelope, Pe
     }
 
     public void removeConnection(URI connection) {
-        synchronized (lock) {
+        writeLock.lock();
+        try {
             items.remove(connection);
+        } finally {
+            writeLock.unlock();
         }
     }
 
     public byte[] getSalt() {
-        synchronized (lock) {
+        readLock.lock();
+        try {
             return salt;
+        } finally {
+            readLock.unlock();
         }
     }
 
     public void setSalt(byte[] salt) {
-        synchronized (lock) {
+        writeLock.lock();
+        try {
             this.salt = salt;
+        } finally {
+            writeLock.unlock();
         }
     }
 
@@ -99,14 +126,21 @@ public class PersistableMoneroConnectionStore implements PersistableEnvelope, Pe
         persistenceManager.requestPersistence();
     }
 
+    public Lock getWriteLock() {
+        return writeLock;
+    }
+
     @Override
     public Message toProtoMessage() {
         List<EncryptedMoneroConnection> connections;
         ByteString saltString;
-        synchronized (lock) {
+        readLock.lock();
+        try {
             connections = items.values().stream()
                     .map(PersistableMoneroConnection::toProtoMessage).collect(Collectors.toList());
             saltString = ByteString.copyFrom(salt);
+        } finally {
+            readLock.unlock();
         }
         return protobuf.PersistableEnvelope.newBuilder()
                 .setXmrConnectionStore(EncryptedMoneroConnectionStore.newBuilder()
