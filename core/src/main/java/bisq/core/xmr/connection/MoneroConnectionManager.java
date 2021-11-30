@@ -120,7 +120,7 @@ public class MoneroConnectionManager {
 
     private MoneroConnection toMoneroConnection(MoneroRpcConnection moneroRpcConnection) {
         MoneroConnection.AuthenticationStatus authenticationStatus;
-        if (moneroRpcConnection.getPassword() == null || moneroRpcConnection.isAuthenticated() == null) {
+        if (moneroRpcConnection.isAuthenticated() == null) {
             authenticationStatus = MoneroConnection.AuthenticationStatus.NO_AUTHENTICATION;
         } else if (moneroRpcConnection.isAuthenticated()) {
             authenticationStatus = MoneroConnection.AuthenticationStatus.AUTHENTICATED;
