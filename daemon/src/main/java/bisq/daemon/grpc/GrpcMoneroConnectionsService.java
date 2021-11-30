@@ -241,6 +241,9 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     }
 
     private static ResponseUriConnection toResponseUriConnection(MoneroConnection moneroConnection) {
+        if (moneroConnection == null) {
+            return null;
+        }
         return ResponseUriConnection.newBuilder()
                 .setUri(moneroConnection.getUri().toString())
                 .setPriority(moneroConnection.getPriority())
