@@ -36,7 +36,6 @@ import bisq.proto.grpc.GetConnectionRequest;
 import bisq.proto.grpc.GetConnectionResponse;
 import bisq.proto.grpc.GetConnectionsRequest;
 import bisq.proto.grpc.GetConnectionsResponse;
-import bisq.proto.grpc.MoneroConnectionsGrpc;
 import bisq.proto.grpc.RemoveConnectionRequest;
 import bisq.proto.grpc.RemoveConnectionResponse;
 import bisq.proto.grpc.RequestUriConnection;
@@ -77,7 +76,7 @@ import bisq.daemon.grpc.interceptor.CallRateMeteringInterceptor;
 import bisq.daemon.grpc.interceptor.GrpcCallRateMeter;
 
 @Slf4j
-class GrpcMoneroConnectionsService extends MoneroConnectionsGrpc.MoneroConnectionsImplBase {
+class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
 
     private final CoreApi coreApi;
     private final GrpcExceptionHandler exceptionHandler;

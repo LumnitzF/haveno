@@ -115,7 +115,7 @@ public class PersistableMoneroConnectionStore implements PersistableEnvelope, Pe
                 .build();
     }
 
-    public static PersistableMoneroConnectionStore fromProto(protobuf.EncryptedMoneroConnectionStore proto) {
+    public static PersistableMoneroConnectionStore fromProto(EncryptedMoneroConnectionStore proto) {
         List<PersistableMoneroConnection> items = proto.getItemsList().stream()
                 .map(PersistableMoneroConnection::fromProto)
                 .collect(Collectors.toList());
