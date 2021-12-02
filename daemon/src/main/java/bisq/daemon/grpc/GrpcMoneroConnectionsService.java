@@ -18,7 +18,7 @@
 package bisq.daemon.grpc;
 
 import bisq.core.api.CoreApi;
-import bisq.core.xmr.connection.model.MoneroConnection;
+import bisq.core.xmr.connection.model.UriConnection;
 
 import bisq.proto.grpc.AddConnectionRequest;
 import bisq.proto.grpc.AddConnectionResponse;
@@ -89,7 +89,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void addConnection(AddConnectionRequest request,
                               StreamObserver<AddConnectionResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
-            coreApi.addMoneroConnection(toMoneroConnection(request.getConnection()));
+            coreApi.addMoneroConnection(toUriConnection(request.getConnection()));
             return AddConnectionResponse.newBuilder().build();
         });
     }
@@ -116,7 +116,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void getConnections(GetConnectionsRequest request,
                                StreamObserver<GetConnectionsResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
-            List<MoneroConnection> connections = coreApi.getMoneroConnections();
+            List<UriConnection> connections = coreApi.getMoneroConnections();
             List<ResponseUriConnection> responseConnections = connections.stream().map(GrpcMoneroConnectionsService::toResponseUriConnection).collect(Collectors.toList());
             return GetConnectionsResponse.newBuilder().addAllConnections(responseConnections).build();
         });
@@ -135,7 +135,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void extendedSetConnection(ExtendedSetConnectionRequest request,
                                       StreamObserver<ExtendedSetConnectionResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
-            coreApi.setMoneroConnection(toMoneroConnection(request.getConnection()));
+            coreApi.setMoneroConnection(toUriConnection(request.getConnection()));
             return ExtendedSetConnectionResponse.newBuilder().build();
 
         });
@@ -145,7 +145,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void checkCurrentConnection(CheckCurrentConnectionRequest request,
                                        StreamObserver<CheckCurrentConnectionResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
-            MoneroConnection connection = coreApi.checkMoneroConnection();
+            UriConnection connection = coreApi.checkMoneroConnection();
             return CheckCurrentConnectionResponse.newBuilder()
                     .setConnection(toResponseUriConnection(connection)).build();
         });
@@ -155,7 +155,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void checkConnection(CheckConnectionRequest request,
                                 StreamObserver<CheckConnectionResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
-            MoneroConnection connection = coreApi.checkMoneroConnection(toMoneroConnection(request.getConnection()));
+            UriConnection connection = coreApi.checkMoneroConnection(toUriConnection(request.getConnection()));
             return CheckConnectionResponse.newBuilder()
                     .setConnection(toResponseUriConnection(connection)).build();
         });
@@ -165,7 +165,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void checkConnections(CheckConnectionsRequest request,
                                  StreamObserver<CheckConnectionsResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
-            List<MoneroConnection> connections = coreApi.checkMoneroConnections();
+            List<UriConnection> connections = coreApi.checkMoneroConnections();
             List<ResponseUriConnection> responseConnections = connections.stream()
                     .map(GrpcMoneroConnectionsService::toResponseUriConnection).collect(Collectors.toList());
             return CheckConnectionsResponse.newBuilder().addAllConnections(responseConnections).build();
@@ -196,7 +196,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void getBestAvailableConnection(GetBestAvailableConnectionRequest request,
                                            StreamObserver<GetBestAvailableConnectionResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
-            MoneroConnection connection = coreApi.getBestAvailableMoneroConnection();
+            UriConnection connection = coreApi.getBestAvailableMoneroConnection();
             return GetBestAvailableConnectionResponse.newBuilder()
                     .setConnection(toResponseUriConnection(connection)).build();
         });
@@ -238,19 +238,19 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
         exceptionHandler.handleException(log, cause, responseObserver);
     }
 
-    private static ResponseUriConnection toResponseUriConnection(MoneroConnection moneroConnection) {
-        if (moneroConnection == null) {
+    private static ResponseUriConnection toResponseUriConnection(UriConnection uriConnection) {
+        if (uriConnection == null) {
             return null;
         }
         return ResponseUriConnection.newBuilder()
-                .setUri(moneroConnection.getUri().toString())
-                .setPriority(moneroConnection.getPriority())
-                .setIsOnline(moneroConnection.isOnline())
-                .setAuthenticated(toAuthenticationStatus(moneroConnection.getAuthenticationStatus()))
+                .setUri(uriConnection.getUri().toString())
+                .setPriority(uriConnection.getPriority())
+                .setIsOnline(uriConnection.isOnline())
+                .setAuthenticated(toAuthenticationStatus(uriConnection.getAuthenticationStatus()))
                 .build();
     }
 
-    private static ResponseUriConnection.AuthenticationStatus toAuthenticationStatus(MoneroConnection.AuthenticationStatus authenticationStatus) {
+    private static ResponseUriConnection.AuthenticationStatus toAuthenticationStatus(UriConnection.AuthenticationStatus authenticationStatus) {
         switch (authenticationStatus) {
             case NO_AUTHENTICATION:
                 return ResponseUriConnection.AuthenticationStatus.NO_AUTHENTICATION;
@@ -263,8 +263,8 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
         }
     }
 
-    private static MoneroConnection toMoneroConnection(RequestUriConnection connection) throws URISyntaxException {
-        return MoneroConnection.builder()
+    private static UriConnection toUriConnection(RequestUriConnection connection) throws URISyntaxException {
+        return UriConnection.builder()
                 .uri(validateUri(connection.getUri()))
                 .priority(connection.getPriority())
                 .username(nullIfEmpty(connection.getUsername()))

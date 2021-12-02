@@ -6,7 +6,7 @@ import lombok.Value;
 
 @Value
 @Builder
-public class MoneroConnection {
+public class UriConnection {
     @NonNull String uri;
     String username;
     String password;

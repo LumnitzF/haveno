@@ -3,7 +3,7 @@ package bisq.core.api;
 import bisq.core.btc.setup.WalletConfig;
 import bisq.core.util.Initializable;
 import bisq.core.xmr.connection.MoneroConnectionManager;
-import bisq.core.xmr.connection.model.MoneroConnection;
+import bisq.core.xmr.connection.model.UriConnection;
 import bisq.core.xmr.connection.persistence.MoneroConnectionStore;
 
 import javax.inject.Inject;
@@ -44,7 +44,7 @@ class CoreMoneroConnectionsService implements Initializable {
     private void addDefaultConnection() {
         String defaultUri = WalletConfig.MONERO_DAEMON_URI;
         if (!connectionStore.hasConnection(defaultUri)) {
-            addConnection(MoneroConnection.builder()
+            addConnection(UriConnection.builder()
                     .uri(defaultUri)
                     .username(WalletConfig.MONERO_DAEMON_USERNAME)
                     .password(WalletConfig.MONERO_DAEMON_PASSWORD)
@@ -52,7 +52,7 @@ class CoreMoneroConnectionsService implements Initializable {
         }
     }
 
-    void addConnection(MoneroConnection connection) {
+    void addConnection(UriConnection connection) {
         synchronized (lock) {
             connectionStore.addConnection(connection);
             connectionManager.addConnection(connection);
@@ -66,19 +66,19 @@ class CoreMoneroConnectionsService implements Initializable {
         }
     }
 
-    public void removeConnection(MoneroConnection connection) {
+    public void removeConnection(UriConnection connection) {
         synchronized (lock) {
             removeConnection(connection.getUri());
         }
     }
 
-    MoneroConnection getConnection() {
+    UriConnection getConnection() {
         synchronized (lock) {
             return connectionManager.getConnection();
         }
     }
 
-    List<MoneroConnection> getConnections() {
+    List<UriConnection> getConnections() {
         synchronized (lock) {
             return connectionManager.getConnections();
         }
@@ -90,25 +90,25 @@ class CoreMoneroConnectionsService implements Initializable {
         }
     }
 
-    void setConnection(MoneroConnection connection) {
+    void setConnection(UriConnection connection) {
         synchronized (lock) {
             connectionManager.setConnection(connection);
         }
     }
 
-    MoneroConnection checkConnection() {
+    UriConnection checkConnection() {
         synchronized (lock) {
             return connectionManager.checkConnection();
         }
     }
 
-    MoneroConnection checkConnection(MoneroConnection connection) {
+    UriConnection checkConnection(UriConnection connection) {
         synchronized (lock) {
             return connectionManager.checkConnection(connection);
         }
     }
 
-    List<MoneroConnection> checkConnections() {
+    List<UriConnection> checkConnections() {
         synchronized (lock) {
             return connectionManager.checkConnections();
         }
@@ -126,7 +126,7 @@ class CoreMoneroConnectionsService implements Initializable {
         }
     }
 
-    MoneroConnection getBestAvailableConnection() {
+    UriConnection getBestAvailableConnection() {
         synchronized (lock) {
             return connectionManager.getBestAvailableConnection();
         }

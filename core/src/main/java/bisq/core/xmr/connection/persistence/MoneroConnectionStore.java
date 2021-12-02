@@ -3,7 +3,7 @@ package bisq.core.xmr.connection.persistence;
 import bisq.core.api.CoreAccountService;
 import bisq.core.crypto.ScryptUtil;
 import bisq.core.util.Initializable;
-import bisq.core.xmr.connection.model.MoneroConnection;
+import bisq.core.xmr.connection.model.UriConnection;
 import bisq.core.xmr.connection.persistence.model.PersistableMoneroConnection;
 import bisq.core.xmr.connection.persistence.model.PersistableMoneroConnectionStore;
 
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Store for {@link MoneroConnection}s.
+ * Store for {@link UriConnection}s.
  * <p>
  * Passwords are encrypted when stored onto disk, using the account password.
  * If a connection has no password, this is "hidden" by using some random value as fake password.
@@ -97,13 +97,13 @@ public class MoneroConnectionStore implements Initializable {
         }
     }
 
-    public List<MoneroConnection> getAllConnections() {
+    public List<UriConnection> getAllConnections() {
         synchronized (lock) {
-            return store.getConnections().stream().map(this::toMoneroConnection).collect(Collectors.toList());
+            return store.getConnections().stream().map(this::toUriConnection).collect(Collectors.toList());
         }
     }
 
-    public void addConnection(MoneroConnection connection) {
+    public void addConnection(UriConnection connection) {
         synchronized (lock) {
             PersistableMoneroConnection persistableConnection = toPersistableMoneroConnection(connection);
             store.addConnection(persistableConnection);
@@ -184,7 +184,7 @@ public class MoneroConnectionStore implements Initializable {
         }
     }
 
-    private PersistableMoneroConnection toPersistableMoneroConnection(MoneroConnection connection) {
+    private PersistableMoneroConnection toPersistableMoneroConnection(UriConnection connection) {
         String password = connection.getPassword();
         byte[] passwordBytes = password == null ? null : password.getBytes(StandardCharsets.UTF_8);
         byte[] passwordSalt = generateSalt(passwordBytes);
@@ -199,10 +199,10 @@ public class MoneroConnectionStore implements Initializable {
                 .build();
     }
 
-    private MoneroConnection toMoneroConnection(PersistableMoneroConnection connection) {
+    private UriConnection toUriConnection(PersistableMoneroConnection connection) {
         byte[] decryptedPasswordBytes = decryptPassword(connection.getEncryptedPassword(), connection.getEncryptionSalt());
         String password = decryptedPasswordBytes == null ? null : new String(decryptedPasswordBytes, StandardCharsets.UTF_8);
-        return MoneroConnection.builder()
+        return UriConnection.builder()
                 .uri(connection.getUri())
                 .username(connection.getUsername())
                 .priority(connection.getPriority())
