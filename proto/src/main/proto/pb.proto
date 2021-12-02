@@ -1321,8 +1321,7 @@ message PersistableEnvelope {
 
         XmrAddressEntryList xmr_address_entry_list = 1001;
         SignedOfferList signed_offer_list = 1002;
-
-        EncryptedMoneroConnectionStore xmr_connection_store = 2001;
+        XmrConnectionList xmr_connection_list = 1003;
     }
 }
 
@@ -1696,12 +1695,12 @@ message TradingPeer {
 // Monero Connections
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-message EncryptedMoneroConnectionStore {
+message XmrConnectionList {
     bytes salt = 1;
-    repeated EncryptedMoneroConnection items = 2;
+    repeated EncryptedUriConnection items = 2;
 }
 
-message EncryptedMoneroConnection {
+message EncryptedUriConnection {
     string uri = 1;
     string username = 2;
     bytes encryptedPassword = 3;

@@ -4,8 +4,8 @@ import bisq.core.api.CoreAccountService;
 import bisq.core.api.model.UriConnection;
 import bisq.core.crypto.ScryptUtil;
 import bisq.core.util.Initializable;
-import bisq.core.xmr.connection.persistence.model.PersistableMoneroConnection;
-import bisq.core.xmr.connection.persistence.model.PersistableMoneroConnectionStore;
+import bisq.core.xmr.connection.persistence.model.EncryptedUriConnection;
+import bisq.core.xmr.connection.persistence.model.XmrConnectionList;
 
 import bisq.common.crypto.CryptoException;
 import bisq.common.crypto.Encryption;
@@ -54,7 +54,7 @@ public class MoneroConnectionStore implements Initializable {
 
     private final SecureRandom random = new SecureRandom();
 
-    private final PersistableMoneroConnectionStore store;
+    private final XmrConnectionList store;
 
     private final CoreAccountService accountService;
 
@@ -63,7 +63,7 @@ public class MoneroConnectionStore implements Initializable {
     private SecretKey encryptionKey;
 
     @Inject
-    public MoneroConnectionStore(PersistableMoneroConnectionStore store, CoreAccountService accountService) {
+    public MoneroConnectionStore(XmrConnectionList store, CoreAccountService accountService) {
         this.store = store;
         this.accountService = accountService;
     }
@@ -105,7 +105,7 @@ public class MoneroConnectionStore implements Initializable {
 
     public void addConnection(UriConnection connection) {
         synchronized (lock) {
-            PersistableMoneroConnection persistableConnection = toPersistableMoneroConnection(connection);
+            EncryptedUriConnection persistableConnection = toPersistableMoneroConnection(connection);
             store.addConnection(persistableConnection);
         }
         store.requestPersistence();
@@ -137,14 +137,14 @@ public class MoneroConnectionStore implements Initializable {
         return Encryption.getSecretKeyFromBytes(keyCrypterScrypt.deriveKey(password).getKey());
     }
 
-    private static void reEncryptStore(PersistableMoneroConnectionStore store,
+    private static void reEncryptStore(XmrConnectionList store,
                                        SecretKey oldSecret,
                                        SecretKey newSecret) {
         // Lock the store, so that it isn't persisted in some undefined state
         Lock writeLock = store.getWriteLock();
         writeLock.lock();
         try {
-            for (PersistableMoneroConnection connection : store.getConnections()) {
+            for (EncryptedUriConnection connection : store.getConnections()) {
                 store.removeConnection(connection.getUri());
                 store.addConnection(reEncrypt(connection, oldSecret, newSecret));
             }
@@ -153,8 +153,8 @@ public class MoneroConnectionStore implements Initializable {
         }
     }
 
-    private static PersistableMoneroConnection reEncrypt(PersistableMoneroConnection connection,
-                                                         SecretKey oldSecret, SecretKey newSecret) {
+    private static EncryptedUriConnection reEncrypt(EncryptedUriConnection connection,
+                                                    SecretKey oldSecret, SecretKey newSecret) {
         return connection.toBuilder()
                 .encryptedPassword(reEncrypt(connection.getEncryptedPassword(), oldSecret, newSecret))
                 .build();
@@ -184,13 +184,13 @@ public class MoneroConnectionStore implements Initializable {
         }
     }
 
-    private PersistableMoneroConnection toPersistableMoneroConnection(UriConnection connection) {
+    private EncryptedUriConnection toPersistableMoneroConnection(UriConnection connection) {
         String password = connection.getPassword();
         byte[] passwordBytes = password == null ? null : password.getBytes(StandardCharsets.UTF_8);
         byte[] passwordSalt = generateSalt(passwordBytes);
         byte[] encryptedPassword = encryptPassword(passwordBytes, passwordSalt);
 
-        return PersistableMoneroConnection.builder()
+        return EncryptedUriConnection.builder()
                 .uri(connection.getUri())
                 .username(connection.getUsername())
                 .priority(connection.getPriority())
@@ -199,7 +199,7 @@ public class MoneroConnectionStore implements Initializable {
                 .build();
     }
 
-    private UriConnection toUriConnection(PersistableMoneroConnection connection) {
+    private UriConnection toUriConnection(EncryptedUriConnection connection) {
         byte[] decryptedPasswordBytes = decryptPassword(connection.getEncryptedPassword(), connection.getEncryptionSalt());
         String password = decryptedPasswordBytes == null ? null : new String(decryptedPasswordBytes, StandardCharsets.UTF_8);
         return UriConnection.builder()

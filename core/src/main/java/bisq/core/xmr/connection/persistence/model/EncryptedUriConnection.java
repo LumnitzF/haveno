@@ -2,16 +2,16 @@ package bisq.core.xmr.connection.persistence.model;
 
 import bisq.common.proto.persistable.PersistablePayload;
 
-import protobuf.EncryptedMoneroConnection;
-
 import com.google.protobuf.ByteString;
 
 import lombok.Builder;
 import lombok.Value;
 
+
+// TODO: Move this to correct package
 @Value
 @Builder(toBuilder = true)
-public class PersistableMoneroConnection implements PersistablePayload {
+public class EncryptedUriConnection implements PersistablePayload {
 
     String uri;
     String username;
@@ -20,8 +20,8 @@ public class PersistableMoneroConnection implements PersistablePayload {
     int priority;
 
     @Override
-    public EncryptedMoneroConnection toProtoMessage() {
-        return EncryptedMoneroConnection.newBuilder()
+    public protobuf.EncryptedUriConnection toProtoMessage() {
+        return protobuf.EncryptedUriConnection.newBuilder()
                 .setUri(uri)
                 .setUsername(username)
                 .setEncryptedPassword(ByteString.copyFrom(encryptedPassword))
@@ -30,8 +30,8 @@ public class PersistableMoneroConnection implements PersistablePayload {
                 .build();
     }
 
-    public static PersistableMoneroConnection fromProto(EncryptedMoneroConnection encryptedMoneroConnection) {
-        return new PersistableMoneroConnection(
+    public static EncryptedUriConnection fromProto(protobuf.EncryptedUriConnection encryptedMoneroConnection) {
+        return new EncryptedUriConnection(
                 encryptedMoneroConnection.getUri(),
                 encryptedMoneroConnection.getUsername(),
                 encryptedMoneroConnection.getEncryptedPassword().toByteArray(),
