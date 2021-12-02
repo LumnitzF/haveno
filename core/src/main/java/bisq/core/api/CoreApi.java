@@ -47,8 +47,6 @@ import javax.inject.Singleton;
 
 import com.google.common.util.concurrent.FutureCallback;
 
-import java.net.URI;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -413,7 +411,7 @@ public class CoreApi {
         coreMoneroConnectionsService.addConnection(connection);
     }
 
-    public void removeMoneroConnection(URI connectionUri) {
+    public void removeMoneroConnection(String connectionUri) {
         coreMoneroConnectionsService.removeConnection(connectionUri);
     }
 
@@ -429,7 +427,7 @@ public class CoreApi {
         return coreMoneroConnectionsService.getConnections();
     }
 
-    public void setMoneroConnection(URI connectionUri) {
+    public void setMoneroConnection(String connectionUri) {
         coreMoneroConnectionsService.setConnection(connectionUri);
     }
 

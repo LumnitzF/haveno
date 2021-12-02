@@ -14,8 +14,6 @@ import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 
-import java.net.URI;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +34,7 @@ public class PersistableMoneroConnectionStore implements PersistableEnvelope, Pe
 
     private byte[] salt;
 
-    private final Map<URI, PersistableMoneroConnection> items = new HashMap<>();
+    private final Map<String, PersistableMoneroConnection> items = new HashMap<>();
 
     @Inject
     public PersistableMoneroConnectionStore(PersistenceManager<PersistableMoneroConnectionStore> persistenceManager) {
@@ -73,7 +71,7 @@ public class PersistableMoneroConnectionStore implements PersistableEnvelope, Pe
         }
     }
 
-    public boolean hasConnection(URI connection) {
+    public boolean hasConnection(String connection) {
         readLock.lock();
         try {
             return items.containsKey(connection);
@@ -95,7 +93,7 @@ public class PersistableMoneroConnectionStore implements PersistableEnvelope, Pe
         }
     }
 
-    public void removeConnection(URI connection) {
+    public void removeConnection(String connection) {
         writeLock.lock();
         try {
             items.remove(connection);

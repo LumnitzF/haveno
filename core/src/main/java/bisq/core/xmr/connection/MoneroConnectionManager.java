@@ -5,8 +5,6 @@ import bisq.core.xmr.connection.model.MoneroConnection;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import java.net.URI;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,9 +39,9 @@ public class MoneroConnectionManager {
         }
     }
 
-    public void removeConnection(URI uri) {
+    public void removeConnection(String uri) {
         synchronized (lock) {
-            connectionManager.removeConnection(uri.toString());
+            connectionManager.removeConnection(uri);
         }
     }
 
@@ -59,9 +57,9 @@ public class MoneroConnectionManager {
         }
     }
 
-    public void setConnection(URI connectionUri) {
+    public void setConnection(String connectionUri) {
         synchronized (lock) {
-            connectionManager.setConnection(connectionUri.toString());
+            connectionManager.setConnection(connectionUri);
         }
     }
 
@@ -129,7 +127,7 @@ public class MoneroConnectionManager {
             authenticationStatus = MoneroConnection.AuthenticationStatus.NOT_AUTHENTICATED;
         }
         return MoneroConnection.builder()
-                .uri(URI.create(moneroRpcConnection.getUri()))
+                .uri(moneroRpcConnection.getUri())
                 .priority(moneroRpcConnection.getPriority())
                 .online(moneroRpcConnection.isOnline())
                 .authenticationStatus(authenticationStatus)

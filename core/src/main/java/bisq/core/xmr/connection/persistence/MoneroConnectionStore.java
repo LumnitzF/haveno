@@ -21,8 +21,6 @@ import javax.crypto.SecretKey;
 
 import java.security.SecureRandom;
 
-import java.net.URI;
-
 import java.nio.charset.StandardCharsets;
 
 import java.util.List;
@@ -93,7 +91,7 @@ public class MoneroConnectionStore implements Initializable {
         }
     }
 
-    public boolean hasConnection(URI connection) {
+    public boolean hasConnection(String connection) {
         synchronized (lock) {
             return store.hasConnection(connection);
         }
@@ -113,7 +111,7 @@ public class MoneroConnectionStore implements Initializable {
         store.requestPersistence();
     }
 
-    public void removeConnection(URI connection) {
+    public void removeConnection(String connection) {
         synchronized (lock) {
             store.removeConnection(connection);
         }

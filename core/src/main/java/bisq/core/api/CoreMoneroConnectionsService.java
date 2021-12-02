@@ -9,8 +9,6 @@ import bisq.core.xmr.connection.persistence.MoneroConnectionStore;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import java.net.URI;
-
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +42,7 @@ class CoreMoneroConnectionsService implements Initializable {
     }
 
     private void addDefaultConnection() {
-        URI defaultUri = URI.create(WalletConfig.MONERO_DAEMON_URI);
+        String defaultUri = WalletConfig.MONERO_DAEMON_URI;
         if (!connectionStore.hasConnection(defaultUri)) {
             addConnection(MoneroConnection.builder()
                     .uri(defaultUri)
@@ -61,7 +59,7 @@ class CoreMoneroConnectionsService implements Initializable {
         }
     }
 
-    void removeConnection(URI connectionUri) {
+    void removeConnection(String connectionUri) {
         synchronized (lock) {
             connectionStore.removeConnection(connectionUri);
             connectionManager.removeConnection(connectionUri);
@@ -86,7 +84,7 @@ class CoreMoneroConnectionsService implements Initializable {
         }
     }
 
-    void setConnection(URI connectionUri) {
+    void setConnection(String connectionUri) {
         synchronized (lock) {
             connectionManager.setConnection(connectionUri);
         }

@@ -6,8 +6,6 @@ import protobuf.EncryptedMoneroConnection;
 
 import com.google.protobuf.ByteString;
 
-import java.net.URI;
-
 import lombok.Builder;
 import lombok.Value;
 
@@ -15,7 +13,7 @@ import lombok.Value;
 @Builder(toBuilder = true)
 public class PersistableMoneroConnection implements PersistablePayload {
 
-    URI uri;
+    String uri;
     String username;
     byte[] encryptedPassword;
     byte[] encryptionSalt;
@@ -24,7 +22,7 @@ public class PersistableMoneroConnection implements PersistablePayload {
     @Override
     public EncryptedMoneroConnection toProtoMessage() {
         return EncryptedMoneroConnection.newBuilder()
-                .setUri(uri.toString())
+                .setUri(uri)
                 .setUsername(username)
                 .setEncryptedPassword(ByteString.copyFrom(encryptedPassword))
                 .setEncryptionSalt(ByteString.copyFrom(encryptionSalt))
@@ -34,7 +32,7 @@ public class PersistableMoneroConnection implements PersistablePayload {
 
     public static PersistableMoneroConnection fromProto(EncryptedMoneroConnection encryptedMoneroConnection) {
         return new PersistableMoneroConnection(
-                URI.create(encryptedMoneroConnection.getUri()),
+                encryptedMoneroConnection.getUri(),
                 encryptedMoneroConnection.getUsername(),
                 encryptedMoneroConnection.getEncryptedPassword().toByteArray(),
                 encryptedMoneroConnection.getEncryptionSalt().toByteArray(),

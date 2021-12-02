@@ -1,7 +1,5 @@
 package bisq.core.xmr.connection.model;
 
-import java.net.URI;
-
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
@@ -9,7 +7,7 @@ import lombok.Value;
 @Value
 @Builder
 public class MoneroConnection {
-    @NonNull URI uri;
+    @NonNull String uri;
     String username;
     String password;
     int priority;

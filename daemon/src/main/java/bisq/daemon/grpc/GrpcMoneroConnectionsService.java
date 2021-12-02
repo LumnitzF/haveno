@@ -98,7 +98,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void removeConnection(RemoveConnectionRequest request,
                                  StreamObserver<RemoveConnectionResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
-            coreApi.removeMoneroConnection(toURI(request.getUri()));
+            coreApi.removeMoneroConnection(validateUri(request.getUri()));
             return RemoveConnectionResponse.newBuilder().build();
         });
     }
@@ -126,7 +126,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void setConnection(SetConnectionRequest request,
                               StreamObserver<SetConnectionResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
-            coreApi.setMoneroConnection(toURI(request.getUri()));
+            coreApi.setMoneroConnection(validateUri(request.getUri()));
             return SetConnectionResponse.newBuilder().build();
         });
     }
@@ -265,18 +265,19 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
 
     private static MoneroConnection toMoneroConnection(RequestUriConnection connection) throws URISyntaxException {
         return MoneroConnection.builder()
-                .uri(toURI(connection.getUri()))
+                .uri(validateUri(connection.getUri()))
                 .priority(connection.getPriority())
                 .username(nullIfEmpty(connection.getUsername()))
                 .password(nullIfEmpty(connection.getPassword()))
                 .build();
     }
 
-    private static URI toURI(String uri) throws URISyntaxException {
+    private static String validateUri(String uri) throws URISyntaxException {
         if (uri.isEmpty()) {
             throw new IllegalArgumentException("URI is required");
         }
-        return new URI(uri);
+        // Create new URI for validation, internally String is used again
+        return new URI(uri).toString();
     }
 
     private static String nullIfEmpty(String value) {
