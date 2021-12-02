@@ -1,9 +1,9 @@
 package bisq.core.xmr.connection.persistence;
 
 import bisq.core.api.CoreAccountService;
+import bisq.core.api.model.UriConnection;
 import bisq.core.crypto.ScryptUtil;
 import bisq.core.util.Initializable;
-import bisq.core.xmr.connection.model.UriConnection;
 import bisq.core.xmr.connection.persistence.model.PersistableMoneroConnection;
 import bisq.core.xmr.connection.persistence.model.PersistableMoneroConnectionStore;
 

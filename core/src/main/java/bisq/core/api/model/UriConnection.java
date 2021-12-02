@@ -1,4 +1,4 @@
-package bisq.core.xmr.connection.model;
+package bisq.core.api.model;
 
 import lombok.Builder;
 import lombok.NonNull;

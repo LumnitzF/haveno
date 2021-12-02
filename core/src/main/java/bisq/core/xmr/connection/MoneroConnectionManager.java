@@ -1,6 +1,6 @@
 package bisq.core.xmr.connection;
 
-import bisq.core.xmr.connection.model.UriConnection;
+import bisq.core.api.model.UriConnection;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

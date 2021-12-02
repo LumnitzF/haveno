@@ -1,9 +1,9 @@
 package bisq.core.api;
 
+import bisq.core.api.model.UriConnection;
 import bisq.core.btc.setup.WalletConfig;
 import bisq.core.util.Initializable;
 import bisq.core.xmr.connection.MoneroConnectionManager;
-import bisq.core.xmr.connection.model.UriConnection;
 import bisq.core.xmr.connection.persistence.MoneroConnectionStore;
 
 import javax.inject.Inject;

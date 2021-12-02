@@ -21,6 +21,7 @@ import bisq.core.api.model.AddressBalanceInfo;
 import bisq.core.api.model.BalancesInfo;
 import bisq.core.api.model.MarketPriceInfo;
 import bisq.core.api.model.TxFeeRateInfo;
+import bisq.core.api.model.UriConnection;
 import bisq.core.monetary.Price;
 import bisq.core.offer.Offer;
 import bisq.core.offer.OfferPayload;
@@ -30,7 +31,6 @@ import bisq.core.payment.payload.PaymentMethod;
 import bisq.core.trade.Trade;
 import bisq.core.trade.statistics.TradeStatistics3;
 import bisq.core.trade.statistics.TradeStatisticsManager;
-import bisq.core.xmr.connection.model.UriConnection;
 
 import bisq.common.app.Version;
 import bisq.common.config.Config;
