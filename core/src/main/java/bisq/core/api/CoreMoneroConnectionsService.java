@@ -3,7 +3,7 @@ package bisq.core.api;
 import bisq.core.api.model.UriConnection;
 import bisq.core.btc.setup.WalletConfig;
 import bisq.core.util.Initializable;
-import bisq.core.xmr.connection.MoneroConnectionManager;
+import bisq.core.xmr.connection.MoneroConnectionsManager;
 import bisq.core.xmr.connection.persistence.MoneroConnectionStore;
 
 import javax.inject.Inject;
@@ -19,11 +19,11 @@ class CoreMoneroConnectionsService implements Initializable {
 
     private final Object lock = new Object();
 
-    private final MoneroConnectionManager connectionManager;
+    private final MoneroConnectionsManager connectionManager;
     private final MoneroConnectionStore connectionStore;
 
     @Inject
-    public CoreMoneroConnectionsService(MoneroConnectionManager connectionManager,
+    public CoreMoneroConnectionsService(MoneroConnectionsManager connectionManager,
                                         MoneroConnectionStore connectionStore) {
         this.connectionManager = connectionManager;
         this.connectionStore = connectionStore;

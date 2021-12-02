@@ -12,18 +12,19 @@ import lombok.extern.slf4j.Slf4j;
 
 
 
+import monero.common.MoneroConnectionManager;
 import monero.common.MoneroRpcConnection;
 
 @Slf4j
 @Singleton
-public class MoneroConnectionManager {
+public class MoneroConnectionsManager {
 
     private final Object lock = new Object();
 
-    private final monero.common.MoneroConnectionManager connectionManager;
+    private final MoneroConnectionManager connectionManager;
 
     @Inject
-    public MoneroConnectionManager(monero.common.MoneroConnectionManager connectionManager) {
+    public MoneroConnectionsManager(MoneroConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
     }
 

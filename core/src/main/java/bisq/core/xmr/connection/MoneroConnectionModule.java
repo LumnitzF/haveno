@@ -19,7 +19,7 @@ public class MoneroConnectionModule extends AppModule {
 
     @Override
     protected final void configure() {
-        bind(MoneroConnectionManager.class);
+        bind(MoneroConnectionsManager.class);
         bind(MoneroConnectionStore.class);
         bind(PersistableMoneroConnectionStore.class).in(Singleton.class);
     }
