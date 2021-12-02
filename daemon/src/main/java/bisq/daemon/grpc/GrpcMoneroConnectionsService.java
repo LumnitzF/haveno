@@ -54,8 +54,6 @@ import io.grpc.stub.StreamObserver;
 
 import javax.inject.Inject;
 
-import java.time.Duration;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -179,7 +177,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
                                          StreamObserver<StartCheckingConnectionsResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
             int refreshMillis = request.getRefreshPeriod();
-            Duration refreshPeriod = refreshMillis == 0 ? null : Duration.ofMillis(refreshMillis);
+            Long refreshPeriod = refreshMillis == 0 ? null : (long) refreshMillis;
             coreApi.startCheckingMoneroConnection(refreshPeriod);
             return StartCheckingConnectionsResponse.newBuilder().build();
         });

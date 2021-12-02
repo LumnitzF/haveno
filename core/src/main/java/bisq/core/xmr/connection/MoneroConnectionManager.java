@@ -5,8 +5,6 @@ import bisq.core.xmr.connection.model.MoneroConnection;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import java.time.Duration;
-
 import java.net.URI;
 
 import java.util.List;
@@ -94,9 +92,9 @@ public class MoneroConnectionManager {
         }
     }
 
-    public void startCheckingConnection(Duration refreshPeriod) {
+    public void startCheckingConnection(Long refreshPeriod) {
         synchronized (lock) {
-            connectionManager.startCheckingConnection(refreshPeriod == null ? null : refreshPeriod.toMillis());
+            connectionManager.startCheckingConnection(refreshPeriod);
         }
     }
 

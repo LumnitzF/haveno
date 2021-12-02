@@ -47,8 +47,6 @@ import javax.inject.Singleton;
 
 import com.google.common.util.concurrent.FutureCallback;
 
-import java.time.Duration;
-
 import java.net.URI;
 
 import java.util.ArrayList;
@@ -451,7 +449,7 @@ public class CoreApi {
         return coreMoneroConnectionsService.checkConnections();
     }
 
-    public void startCheckingMoneroConnection(Duration refreshPeriod) {
+    public void startCheckingMoneroConnection(Long refreshPeriod) {
         coreMoneroConnectionsService.startCheckingConnection(refreshPeriod);
     }
 

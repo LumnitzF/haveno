@@ -9,8 +9,6 @@ import bisq.core.xmr.connection.persistence.MoneroConnectionStore;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import java.time.Duration;
-
 import java.net.URI;
 
 import java.util.List;
@@ -118,7 +116,7 @@ class CoreMoneroConnectionsService implements Initializable {
         }
     }
 
-    void startCheckingConnection(Duration refreshPeriod) {
+    void startCheckingConnection(Long refreshPeriod) {
         synchronized (lock) {
             connectionManager.startCheckingConnection(refreshPeriod);
         }
