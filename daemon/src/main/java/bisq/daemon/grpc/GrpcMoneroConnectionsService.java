@@ -38,8 +38,6 @@ import bisq.proto.grpc.GetConnectionsRequest;
 import bisq.proto.grpc.GetConnectionsResponse;
 import bisq.proto.grpc.RemoveConnectionRequest;
 import bisq.proto.grpc.RemoveConnectionResponse;
-import bisq.proto.grpc.RequestUriConnection;
-import bisq.proto.grpc.ResponseUriConnection;
 import bisq.proto.grpc.SetAutoSwitchRequest;
 import bisq.proto.grpc.SetAutoSwitchResponse;
 import bisq.proto.grpc.SetConnectionRequest;
@@ -89,7 +87,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void addConnection(AddConnectionRequest request,
                               StreamObserver<AddConnectionResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
-            coreApi.addMoneroConnection(toUriConnection(request.getConnection()));
+            coreApi.addMoneroConnection(toInternalUriConnection(request.getConnection()));
             return AddConnectionResponse.newBuilder().build();
         });
     }
@@ -107,7 +105,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void getConnection(GetConnectionRequest request,
                               StreamObserver<GetConnectionResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
-            ResponseUriConnection responseConnection = toResponseUriConnection(coreApi.getMoneroConnection());
+            bisq.proto.grpc.UriConnection responseConnection = toGrpcUriConnection(coreApi.getMoneroConnection());
             return GetConnectionResponse.newBuilder().setConnection(responseConnection).build();
         });
     }
@@ -117,7 +115,8 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
                                StreamObserver<GetConnectionsResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
             List<UriConnection> connections = coreApi.getMoneroConnections();
-            List<ResponseUriConnection> responseConnections = connections.stream().map(GrpcMoneroConnectionsService::toResponseUriConnection).collect(Collectors.toList());
+            List<bisq.proto.grpc.UriConnection> responseConnections = connections.stream()
+                    .map(GrpcMoneroConnectionsService::toGrpcUriConnection).collect(Collectors.toList());
             return GetConnectionsResponse.newBuilder().addAllConnections(responseConnections).build();
         });
     }
@@ -135,7 +134,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void extendedSetConnection(ExtendedSetConnectionRequest request,
                                       StreamObserver<ExtendedSetConnectionResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
-            coreApi.setMoneroConnection(toUriConnection(request.getConnection()));
+            coreApi.setMoneroConnection(toInternalUriConnection(request.getConnection()));
             return ExtendedSetConnectionResponse.newBuilder().build();
 
         });
@@ -147,7 +146,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
         handleRequest(responseObserver, () -> {
             UriConnection connection = coreApi.checkMoneroConnection();
             return CheckCurrentConnectionResponse.newBuilder()
-                    .setConnection(toResponseUriConnection(connection)).build();
+                    .setConnection(toGrpcUriConnection(connection)).build();
         });
     }
 
@@ -155,9 +154,9 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void checkConnection(CheckConnectionRequest request,
                                 StreamObserver<CheckConnectionResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
-            UriConnection connection = coreApi.checkMoneroConnection(toUriConnection(request.getConnection()));
+            UriConnection connection = coreApi.checkMoneroConnection(toInternalUriConnection(request.getConnection()));
             return CheckConnectionResponse.newBuilder()
-                    .setConnection(toResponseUriConnection(connection)).build();
+                    .setConnection(toGrpcUriConnection(connection)).build();
         });
     }
 
@@ -166,8 +165,8 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
                                  StreamObserver<CheckConnectionsResponse> responseObserver) {
         handleRequest(responseObserver, () -> {
             List<UriConnection> connections = coreApi.checkMoneroConnections();
-            List<ResponseUriConnection> responseConnections = connections.stream()
-                    .map(GrpcMoneroConnectionsService::toResponseUriConnection).collect(Collectors.toList());
+            List<bisq.proto.grpc.UriConnection> responseConnections = connections.stream()
+                    .map(GrpcMoneroConnectionsService::toGrpcUriConnection).collect(Collectors.toList());
             return CheckConnectionsResponse.newBuilder().addAllConnections(responseConnections).build();
         });
     }
@@ -198,7 +197,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
         handleRequest(responseObserver, () -> {
             UriConnection connection = coreApi.getBestAvailableMoneroConnection();
             return GetBestAvailableConnectionResponse.newBuilder()
-                    .setConnection(toResponseUriConnection(connection)).build();
+                    .setConnection(toGrpcUriConnection(connection)).build();
         });
     }
 
@@ -238,11 +237,11 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
         exceptionHandler.handleException(log, cause, responseObserver);
     }
 
-    private static ResponseUriConnection toResponseUriConnection(UriConnection uriConnection) {
+    private static bisq.proto.grpc.UriConnection toGrpcUriConnection(UriConnection uriConnection) {
         if (uriConnection == null) {
             return null;
         }
-        return ResponseUriConnection.newBuilder()
+        return bisq.proto.grpc.UriConnection.newBuilder()
                 .setUri(uriConnection.getUri().toString())
                 .setPriority(uriConnection.getPriority())
                 .setIsOnline(uriConnection.isOnline())
@@ -250,20 +249,20 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
                 .build();
     }
 
-    private static ResponseUriConnection.AuthenticationStatus toAuthenticationStatus(UriConnection.AuthenticationStatus authenticationStatus) {
+    private static bisq.proto.grpc.UriConnection.AuthenticationStatus toAuthenticationStatus(UriConnection.AuthenticationStatus authenticationStatus) {
         switch (authenticationStatus) {
             case NO_AUTHENTICATION:
-                return ResponseUriConnection.AuthenticationStatus.NO_AUTHENTICATION;
+                return bisq.proto.grpc.UriConnection.AuthenticationStatus.NO_AUTHENTICATION;
             case AUTHENTICATED:
-                return ResponseUriConnection.AuthenticationStatus.AUTHENTICATED;
+                return bisq.proto.grpc.UriConnection.AuthenticationStatus.AUTHENTICATED;
             case NOT_AUTHENTICATED:
-                return ResponseUriConnection.AuthenticationStatus.NOT_AUTHENTICATED;
+                return bisq.proto.grpc.UriConnection.AuthenticationStatus.NOT_AUTHENTICATED;
             default:
                 throw new UnsupportedOperationException(String.format("Unsupported authentication status %s", authenticationStatus));
         }
     }
 
-    private static UriConnection toUriConnection(RequestUriConnection connection) throws URISyntaxException {
+    private static UriConnection toInternalUriConnection(bisq.proto.grpc.UriConnection connection) throws URISyntaxException {
         return UriConnection.builder()
                 .uri(validateUri(connection.getUri()))
                 .priority(connection.getPriority())

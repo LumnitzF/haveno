@@ -743,7 +743,7 @@ service MoneroConnections {
 
 
 message AddConnectionRequest {
-    RequestUriConnection connection = 1;
+    UriConnection connection = 1;
 }
 
 message AddConnectionResponse {}
@@ -757,13 +757,13 @@ message RemoveConnectionResponse {}
 message GetConnectionRequest {}
 
 message GetConnectionResponse {
-    ResponseUriConnection connection = 1;
+    UriConnection connection = 1;
 }
 
 message GetConnectionsRequest {}
 
 message GetConnectionsResponse {
-    repeated ResponseUriConnection connections = 1;
+    repeated UriConnection connections = 1;
 }
 
 message SetConnectionRequest {
@@ -773,7 +773,7 @@ message SetConnectionRequest {
 message SetConnectionResponse {}
 
 message ExtendedSetConnectionRequest {
-    RequestUriConnection connection = 1;
+    UriConnection connection = 1;
 }
 
 message ExtendedSetConnectionResponse {}
@@ -781,21 +781,21 @@ message ExtendedSetConnectionResponse {}
 message CheckCurrentConnectionRequest {}
 
 message CheckCurrentConnectionResponse {
-    ResponseUriConnection connection = 1;
+    UriConnection connection = 1;
 }
 
 message CheckConnectionRequest {
-    RequestUriConnection connection = 1;
+    UriConnection connection = 1;
 }
 
 message CheckConnectionResponse {
-    ResponseUriConnection connection = 1;
+    UriConnection connection = 1;
 }
 
 message CheckConnectionsRequest {}
 
 message CheckConnectionsResponse {
-    repeated ResponseUriConnection connections = 1;
+    repeated UriConnection connections = 1;
 }
 
 message StartCheckingConnectionsRequest {
@@ -811,7 +811,7 @@ message StopCheckingConnectionsResponse {}
 message GetBestAvailableConnectionRequest {}
 
 message GetBestAvailableConnectionResponse {
-    ResponseUriConnection connection = 1;
+    UriConnection connection = 1;
 }
 
 message SetAutoSwitchRequest {
@@ -820,23 +820,18 @@ message SetAutoSwitchRequest {
 
 message SetAutoSwitchResponse {}
 
-message RequestUriConnection {
-    string uri = 1;
-    string username = 2;
-    string password = 3;
+message UriConnection {
+    string uri = 1; // must always be filled
+    string username = 2; // request-only
+    string password = 3; // request-only
     int32 priority = 4; // the higher the number, the higher the relative priority
-}
-
-message ResponseUriConnection {
-    string uri = 1;
-    int32 priority = 2; // the higher the number, the higher the relative priority
-    bool isOnline = 3;// whether or not the daemon is online
+    bool isOnline = 5;// whether or not the daemon is online, reply-only
     enum AuthenticationStatus {
         NO_AUTHENTICATION = 0;
         AUTHENTICATED = 1;
         NOT_AUTHENTICATED = 2;
     }
-    AuthenticationStatus authenticated = 4;
+    AuthenticationStatus authenticated = 6; // reply-only
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
