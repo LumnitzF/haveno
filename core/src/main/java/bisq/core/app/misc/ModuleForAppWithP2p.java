@@ -18,7 +18,6 @@
 package bisq.core.app.misc;
 
 import bisq.core.alert.AlertModule;
-import bisq.core.app.BaseModule;
 import bisq.core.app.TorSetup;
 import bisq.core.btc.BitcoinModule;
 import bisq.core.filter.FilterModule;
@@ -38,6 +37,7 @@ import bisq.network.p2p.network.NetworkFilter;
 import bisq.network.p2p.seed.SeedNodeRepository;
 
 import bisq.common.ClockWatcher;
+import bisq.common.app.AppModule;
 import bisq.common.config.Config;
 import bisq.common.crypto.KeyRing;
 import bisq.common.crypto.KeyStorage;
@@ -53,7 +53,7 @@ import java.io.File;
 import static bisq.common.config.Config.*;
 import static com.google.inject.name.Names.named;
 
-public class ModuleForAppWithP2p extends BaseModule {
+public class ModuleForAppWithP2p extends AppModule {
 
     public ModuleForAppWithP2p(Config config) {
         super(config);
@@ -61,7 +61,6 @@ public class ModuleForAppWithP2p extends BaseModule {
 
     @Override
     protected void configure() {
-        super.configure();
         bind(Config.class).toInstance(config);
 
         bind(KeyStorage.class).in(Singleton.class);
