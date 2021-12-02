@@ -1,6 +1,8 @@
 package bisq.core.xmr.connection;
 
 import bisq.core.api.model.UriConnection;
+import bisq.core.btc.setup.WalletConfig;
+import bisq.core.xmr.connection.persistence.MoneroConnectionStore;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -17,31 +19,54 @@ import monero.common.MoneroRpcConnection;
 
 @Slf4j
 @Singleton
-public class MoneroConnectionsManager {
+public final class MoneroConnectionsManager {
 
     private final Object lock = new Object();
 
     private final MoneroConnectionManager connectionManager;
+    private final MoneroConnectionStore connectionStore;
 
     @Inject
-    public MoneroConnectionsManager(MoneroConnectionManager connectionManager) {
+    public MoneroConnectionsManager(MoneroConnectionManager connectionManager,
+                                    MoneroConnectionStore connectionStore) {
         this.connectionManager = connectionManager;
+        this.connectionStore = connectionStore;
+        initialize();
+    }
+
+    private void initialize() {
+        synchronized (lock) {
+            loadConnectionsFromStore();
+            addDefaultConnection();
+        }
+    }
+
+    private void loadConnectionsFromStore() {
+        connectionStore.getAllConnections().forEach(uriConnection ->
+                connectionManager.addConnection(toMoneroRpcConnection(uriConnection)));
+    }
+
+    private void addDefaultConnection() {
+        String defaultUri = WalletConfig.MONERO_DAEMON_URI;
+        if (!connectionStore.hasConnection(defaultUri)) {
+            addConnection(UriConnection.builder()
+                    .uri(defaultUri)
+                    .username(WalletConfig.MONERO_DAEMON_USERNAME)
+                    .password(WalletConfig.MONERO_DAEMON_PASSWORD)
+                    .build());
+        }
     }
 
     public void addConnection(UriConnection connection) {
         synchronized (lock) {
+            connectionStore.addConnection(connection);
             connectionManager.addConnection(toMoneroRpcConnection(connection));
-        }
-    }
-
-    public void removeConnection(UriConnection connection) {
-        synchronized (lock) {
-            removeConnection(connection.getUri());
         }
     }
 
     public void removeConnection(String uri) {
         synchronized (lock) {
+            connectionStore.removeConnection(uri);
             connectionManager.removeConnection(uri);
         }
     }
