@@ -2,7 +2,7 @@ package bisq.core.xmr.connection;
 
 import bisq.core.api.model.UriConnection;
 import bisq.core.btc.setup.WalletConfig;
-import bisq.core.xmr.connection.persistence.MoneroConnectionStore;
+import bisq.core.xmr.connection.persistence.model.XmrConnectionList;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -24,31 +24,31 @@ public final class MoneroConnectionsManager {
     private final Object lock = new Object();
 
     private final MoneroConnectionManager connectionManager;
-    private final MoneroConnectionStore connectionStore;
+    private final XmrConnectionList connectionList;
 
     @Inject
     public MoneroConnectionsManager(MoneroConnectionManager connectionManager,
-                                    MoneroConnectionStore connectionStore) {
+                                    XmrConnectionList connectionList) {
         this.connectionManager = connectionManager;
-        this.connectionStore = connectionStore;
+        this.connectionList = connectionList;
         initialize();
     }
 
     private void initialize() {
         synchronized (lock) {
-            loadConnectionsFromStore();
+            loadConnections();
             addDefaultConnection();
         }
     }
 
-    private void loadConnectionsFromStore() {
-        connectionStore.getAllConnections().forEach(uriConnection ->
+    private void loadConnections() {
+        connectionList.getConnections().forEach(uriConnection ->
                 connectionManager.addConnection(toMoneroRpcConnection(uriConnection)));
     }
 
     private void addDefaultConnection() {
         String defaultUri = WalletConfig.MONERO_DAEMON_URI;
-        if (!connectionStore.hasConnection(defaultUri)) {
+        if (!connectionList.hasConnection(defaultUri)) {
             addConnection(UriConnection.builder()
                     .uri(defaultUri)
                     .username(WalletConfig.MONERO_DAEMON_USERNAME)
@@ -59,14 +59,14 @@ public final class MoneroConnectionsManager {
 
     public void addConnection(UriConnection connection) {
         synchronized (lock) {
-            connectionStore.addConnection(connection);
+            connectionList.addConnection(connection);
             connectionManager.addConnection(toMoneroRpcConnection(connection));
         }
     }
 
     public void removeConnection(String uri) {
         synchronized (lock) {
-            connectionStore.removeConnection(uri);
+            connectionList.removeConnection(uri);
             connectionManager.removeConnection(uri);
         }
     }

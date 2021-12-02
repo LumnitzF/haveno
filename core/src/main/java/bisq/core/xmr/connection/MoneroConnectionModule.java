@@ -1,6 +1,5 @@
 package bisq.core.xmr.connection;
 
-import bisq.core.xmr.connection.persistence.MoneroConnectionStore;
 import bisq.core.xmr.connection.persistence.model.XmrConnectionList;
 
 import bisq.common.app.AppModule;
@@ -20,7 +19,6 @@ public class MoneroConnectionModule extends AppModule {
     @Override
     protected final void configure() {
         bind(MoneroConnectionsManager.class);
-        bind(MoneroConnectionStore.class);
         bind(XmrConnectionList.class).in(Singleton.class);
     }
 }
