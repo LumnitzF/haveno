@@ -3,7 +3,6 @@ package bisq.core.xmr.connection.persistence;
 import bisq.core.api.CoreAccountService;
 import bisq.core.api.model.UriConnection;
 import bisq.core.crypto.ScryptUtil;
-import bisq.core.util.Initializable;
 import bisq.core.xmr.connection.persistence.model.EncryptedUriConnection;
 import bisq.core.xmr.connection.persistence.model.XmrConnectionList;
 
@@ -44,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
  *  Otherwise, it is removed (from the end) and the remaining value is the actual password.
  */
 @Singleton
-public class MoneroConnectionStore implements Initializable {
+public class MoneroConnectionStore {
 
     private static final int MIN_FAKE_PASSWORD_LENGTH = 5;
     private static final int MAX_FAKE_PASSWORD_LENGTH = 32;
@@ -66,11 +65,11 @@ public class MoneroConnectionStore implements Initializable {
     public MoneroConnectionStore(XmrConnectionList store, CoreAccountService accountService) {
         this.store = store;
         this.accountService = accountService;
+        initialize();
     }
 
 
-    @Override
-    public void initialize() {
+    private void initialize() {
         synchronized (lock) {
             setupStore();
             encryptionKey = toSecretKey(accountService.getPassword());
