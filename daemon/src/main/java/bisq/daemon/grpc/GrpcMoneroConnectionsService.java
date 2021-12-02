@@ -20,32 +20,32 @@ package bisq.daemon.grpc;
 import bisq.core.api.CoreApi;
 import bisq.core.api.model.UriConnection;
 
+import bisq.proto.grpc.AddConnectionReply;
 import bisq.proto.grpc.AddConnectionRequest;
-import bisq.proto.grpc.AddConnectionResponse;
+import bisq.proto.grpc.CheckConnectionReply;
 import bisq.proto.grpc.CheckConnectionRequest;
-import bisq.proto.grpc.CheckConnectionResponse;
+import bisq.proto.grpc.CheckConnectionsReply;
 import bisq.proto.grpc.CheckConnectionsRequest;
-import bisq.proto.grpc.CheckConnectionsResponse;
+import bisq.proto.grpc.CheckCurrentConnectionReply;
 import bisq.proto.grpc.CheckCurrentConnectionRequest;
-import bisq.proto.grpc.CheckCurrentConnectionResponse;
+import bisq.proto.grpc.ExtendedSetConnectionReply;
 import bisq.proto.grpc.ExtendedSetConnectionRequest;
-import bisq.proto.grpc.ExtendedSetConnectionResponse;
+import bisq.proto.grpc.GetBestAvailableConnectionReply;
 import bisq.proto.grpc.GetBestAvailableConnectionRequest;
-import bisq.proto.grpc.GetBestAvailableConnectionResponse;
+import bisq.proto.grpc.GetConnectionReply;
 import bisq.proto.grpc.GetConnectionRequest;
-import bisq.proto.grpc.GetConnectionResponse;
+import bisq.proto.grpc.GetConnectionsReply;
 import bisq.proto.grpc.GetConnectionsRequest;
-import bisq.proto.grpc.GetConnectionsResponse;
+import bisq.proto.grpc.RemoveConnectionReply;
 import bisq.proto.grpc.RemoveConnectionRequest;
-import bisq.proto.grpc.RemoveConnectionResponse;
+import bisq.proto.grpc.SetAutoSwitchReply;
 import bisq.proto.grpc.SetAutoSwitchRequest;
-import bisq.proto.grpc.SetAutoSwitchResponse;
+import bisq.proto.grpc.SetConnectionReply;
 import bisq.proto.grpc.SetConnectionRequest;
-import bisq.proto.grpc.SetConnectionResponse;
+import bisq.proto.grpc.StartCheckingConnectionsReply;
 import bisq.proto.grpc.StartCheckingConnectionsRequest;
-import bisq.proto.grpc.StartCheckingConnectionsResponse;
+import bisq.proto.grpc.StopCheckingConnectionsReply;
 import bisq.proto.grpc.StopCheckingConnectionsRequest;
-import bisq.proto.grpc.StopCheckingConnectionsResponse;
 
 import io.grpc.ServerInterceptor;
 import io.grpc.stub.StreamObserver;
@@ -85,136 +85,136 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
 
     @Override
     public void addConnection(AddConnectionRequest request,
-                              StreamObserver<AddConnectionResponse> responseObserver) {
+                              StreamObserver<AddConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             coreApi.addMoneroConnection(toInternalUriConnection(request.getConnection()));
-            return AddConnectionResponse.newBuilder().build();
+            return AddConnectionReply.newBuilder().build();
         });
     }
 
     @Override
     public void removeConnection(RemoveConnectionRequest request,
-                                 StreamObserver<RemoveConnectionResponse> responseObserver) {
+                                 StreamObserver<RemoveConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             coreApi.removeMoneroConnection(validateUri(request.getUri()));
-            return RemoveConnectionResponse.newBuilder().build();
+            return RemoveConnectionReply.newBuilder().build();
         });
     }
 
     @Override
     public void getConnection(GetConnectionRequest request,
-                              StreamObserver<GetConnectionResponse> responseObserver) {
+                              StreamObserver<GetConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
-            bisq.proto.grpc.UriConnection responseConnection = toGrpcUriConnection(coreApi.getMoneroConnection());
-            return GetConnectionResponse.newBuilder().setConnection(responseConnection).build();
+            bisq.proto.grpc.UriConnection replyConnection = toGrpcUriConnection(coreApi.getMoneroConnection());
+            return GetConnectionReply.newBuilder().setConnection(replyConnection).build();
         });
     }
 
     @Override
     public void getConnections(GetConnectionsRequest request,
-                               StreamObserver<GetConnectionsResponse> responseObserver) {
+                               StreamObserver<GetConnectionsReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             List<UriConnection> connections = coreApi.getMoneroConnections();
-            List<bisq.proto.grpc.UriConnection> responseConnections = connections.stream()
+            List<bisq.proto.grpc.UriConnection> replyConnections = connections.stream()
                     .map(GrpcMoneroConnectionsService::toGrpcUriConnection).collect(Collectors.toList());
-            return GetConnectionsResponse.newBuilder().addAllConnections(responseConnections).build();
+            return GetConnectionsReply.newBuilder().addAllConnections(replyConnections).build();
         });
     }
 
     @Override
     public void setConnection(SetConnectionRequest request,
-                              StreamObserver<SetConnectionResponse> responseObserver) {
+                              StreamObserver<SetConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             coreApi.setMoneroConnection(validateUri(request.getUri()));
-            return SetConnectionResponse.newBuilder().build();
+            return SetConnectionReply.newBuilder().build();
         });
     }
 
     @Override
     public void extendedSetConnection(ExtendedSetConnectionRequest request,
-                                      StreamObserver<ExtendedSetConnectionResponse> responseObserver) {
+                                      StreamObserver<ExtendedSetConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             coreApi.setMoneroConnection(toInternalUriConnection(request.getConnection()));
-            return ExtendedSetConnectionResponse.newBuilder().build();
+            return ExtendedSetConnectionReply.newBuilder().build();
 
         });
     }
 
     @Override
     public void checkCurrentConnection(CheckCurrentConnectionRequest request,
-                                       StreamObserver<CheckCurrentConnectionResponse> responseObserver) {
+                                       StreamObserver<CheckCurrentConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             UriConnection connection = coreApi.checkMoneroConnection();
-            return CheckCurrentConnectionResponse.newBuilder()
+            return CheckCurrentConnectionReply.newBuilder()
                     .setConnection(toGrpcUriConnection(connection)).build();
         });
     }
 
     @Override
     public void checkConnection(CheckConnectionRequest request,
-                                StreamObserver<CheckConnectionResponse> responseObserver) {
+                                StreamObserver<CheckConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             UriConnection connection = coreApi.checkMoneroConnection(toInternalUriConnection(request.getConnection()));
-            return CheckConnectionResponse.newBuilder()
+            return CheckConnectionReply.newBuilder()
                     .setConnection(toGrpcUriConnection(connection)).build();
         });
     }
 
     @Override
     public void checkConnections(CheckConnectionsRequest request,
-                                 StreamObserver<CheckConnectionsResponse> responseObserver) {
+                                 StreamObserver<CheckConnectionsReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             List<UriConnection> connections = coreApi.checkMoneroConnections();
-            List<bisq.proto.grpc.UriConnection> responseConnections = connections.stream()
+            List<bisq.proto.grpc.UriConnection> replyConnections = connections.stream()
                     .map(GrpcMoneroConnectionsService::toGrpcUriConnection).collect(Collectors.toList());
-            return CheckConnectionsResponse.newBuilder().addAllConnections(responseConnections).build();
+            return CheckConnectionsReply.newBuilder().addAllConnections(replyConnections).build();
         });
     }
 
     @Override
     public void startCheckingConnections(StartCheckingConnectionsRequest request,
-                                         StreamObserver<StartCheckingConnectionsResponse> responseObserver) {
+                                         StreamObserver<StartCheckingConnectionsReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             int refreshMillis = request.getRefreshPeriod();
             Long refreshPeriod = refreshMillis == 0 ? null : (long) refreshMillis;
             coreApi.startCheckingMoneroConnection(refreshPeriod);
-            return StartCheckingConnectionsResponse.newBuilder().build();
+            return StartCheckingConnectionsReply.newBuilder().build();
         });
     }
 
     @Override
     public void stopCheckingConnections(StopCheckingConnectionsRequest request,
-                                        StreamObserver<StopCheckingConnectionsResponse> responseObserver) {
+                                        StreamObserver<StopCheckingConnectionsReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             coreApi.stopCheckingMoneroConnection();
-            return StopCheckingConnectionsResponse.newBuilder().build();
+            return StopCheckingConnectionsReply.newBuilder().build();
         });
     }
 
     @Override
     public void getBestAvailableConnection(GetBestAvailableConnectionRequest request,
-                                           StreamObserver<GetBestAvailableConnectionResponse> responseObserver) {
+                                           StreamObserver<GetBestAvailableConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             UriConnection connection = coreApi.getBestAvailableMoneroConnection();
-            return GetBestAvailableConnectionResponse.newBuilder()
+            return GetBestAvailableConnectionReply.newBuilder()
                     .setConnection(toGrpcUriConnection(connection)).build();
         });
     }
 
     @Override
     public void setAutoSwitch(SetAutoSwitchRequest request,
-                              StreamObserver<SetAutoSwitchResponse> responseObserver) {
+                              StreamObserver<SetAutoSwitchReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             coreApi.setMoneroConnectionAutoSwitch(request.getAutoSwitch());
-            return SetAutoSwitchResponse.newBuilder().build();
+            return SetAutoSwitchReply.newBuilder().build();
         });
     }
 
-    private <_Response> void handleRequest(StreamObserver<_Response> responseObserver,
-                                           RpcRequestHandler<_Response> handler) {
+    private <_Reply> void handleRequest(StreamObserver<_Reply> responseObserver,
+                                        RpcRequestHandler<_Reply> handler) {
         try {
-            _Response response = handler.handleRequest();
-            responseObserver.onNext(response);
+            _Reply reply = handler.handleRequest();
+            responseObserver.onNext(reply);
             responseObserver.onCompleted();
         } catch (URISyntaxException cause) {
             handleUriSyntaxException(responseObserver, cause);
@@ -224,8 +224,8 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     }
 
     @FunctionalInterface
-    private interface RpcRequestHandler<_Response> {
-        _Response handleRequest() throws Exception;
+    private interface RpcRequestHandler<_Reply> {
+        _Reply handleRequest() throws Exception;
     }
 
     private void handleUriSyntaxException(StreamObserver<?> responseObserver, URISyntaxException cause) {

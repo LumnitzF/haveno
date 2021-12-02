@@ -700,43 +700,43 @@ message AddressBalanceInfo {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 service MoneroConnections {
-    rpc AddConnection (AddConnectionRequest) returns (AddConnectionResponse) {
+    rpc AddConnection (AddConnectionRequest) returns (AddConnectionReply) {
     }
 
-    rpc RemoveConnection(RemoveConnectionRequest) returns (RemoveConnectionResponse) {
+    rpc RemoveConnection(RemoveConnectionRequest) returns (RemoveConnectionReply) {
     }
 
-    rpc GetConnection(GetConnectionRequest) returns (GetConnectionResponse) {
+    rpc GetConnection(GetConnectionRequest) returns (GetConnectionReply) {
     }
 
-    rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsResponse) {
+    rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsReply) {
     }
 
-    rpc SetConnection(SetConnectionRequest) returns (SetConnectionResponse) {
+    rpc SetConnection(SetConnectionRequest) returns (SetConnectionReply) {
     }
 
-    rpc ExtendedSetConnection(ExtendedSetConnectionRequest) returns (ExtendedSetConnectionResponse) {
+    rpc ExtendedSetConnection(ExtendedSetConnectionRequest) returns (ExtendedSetConnectionReply) {
     }
 
-    rpc CheckCurrentConnection(CheckCurrentConnectionRequest) returns (CheckCurrentConnectionResponse) {
+    rpc CheckCurrentConnection(CheckCurrentConnectionRequest) returns (CheckCurrentConnectionReply) {
     }
 
-    rpc CheckConnection(CheckConnectionRequest) returns (CheckConnectionResponse) {
+    rpc CheckConnection(CheckConnectionRequest) returns (CheckConnectionReply) {
     }
 
-    rpc CheckConnections(CheckConnectionsRequest) returns (CheckConnectionsResponse) {
+    rpc CheckConnections(CheckConnectionsRequest) returns (CheckConnectionsReply) {
     }
 
-    rpc StartCheckingConnections(StartCheckingConnectionsRequest) returns (StartCheckingConnectionsResponse) {
+    rpc StartCheckingConnections(StartCheckingConnectionsRequest) returns (StartCheckingConnectionsReply) {
     }
 
-    rpc StopCheckingConnections(StopCheckingConnectionsRequest) returns (StopCheckingConnectionsResponse) {
+    rpc StopCheckingConnections(StopCheckingConnectionsRequest) returns (StopCheckingConnectionsReply) {
     }
 
-    rpc GetBestAvailableConnection(GetBestAvailableConnectionRequest) returns (GetBestAvailableConnectionResponse) {
+    rpc GetBestAvailableConnection(GetBestAvailableConnectionRequest) returns (GetBestAvailableConnectionReply) {
     }
 
-    rpc SetAutoSwitch(SetAutoSwitchRequest) returns (SetAutoSwitchResponse) {
+    rpc SetAutoSwitch(SetAutoSwitchRequest) returns (SetAutoSwitchReply) {
     }
 
 }
@@ -746,23 +746,23 @@ message AddConnectionRequest {
     UriConnection connection = 1;
 }
 
-message AddConnectionResponse {}
+message AddConnectionReply {}
 
 message RemoveConnectionRequest {
     string uri = 1;
 }
 
-message RemoveConnectionResponse {}
+message RemoveConnectionReply {}
 
 message GetConnectionRequest {}
 
-message GetConnectionResponse {
+message GetConnectionReply {
     UriConnection connection = 1;
 }
 
 message GetConnectionsRequest {}
 
-message GetConnectionsResponse {
+message GetConnectionsReply {
     repeated UriConnection connections = 1;
 }
 
@@ -770,17 +770,17 @@ message SetConnectionRequest {
     string uri = 1;
 }
 
-message SetConnectionResponse {}
+message SetConnectionReply {}
 
 message ExtendedSetConnectionRequest {
     UriConnection connection = 1;
 }
 
-message ExtendedSetConnectionResponse {}
+message ExtendedSetConnectionReply {}
 
 message CheckCurrentConnectionRequest {}
 
-message CheckCurrentConnectionResponse {
+message CheckCurrentConnectionReply {
     UriConnection connection = 1;
 }
 
@@ -788,13 +788,13 @@ message CheckConnectionRequest {
     UriConnection connection = 1;
 }
 
-message CheckConnectionResponse {
+message CheckConnectionReply {
     UriConnection connection = 1;
 }
 
 message CheckConnectionsRequest {}
 
-message CheckConnectionsResponse {
+message CheckConnectionsReply {
     repeated UriConnection connections = 1;
 }
 
@@ -802,15 +802,15 @@ message StartCheckingConnectionsRequest {
     int32 refreshPeriod = 1; // milliseconds
 }
 
-message StartCheckingConnectionsResponse {}
+message StartCheckingConnectionsReply {}
 
 message StopCheckingConnectionsRequest {}
 
-message StopCheckingConnectionsResponse {}
+message StopCheckingConnectionsReply {}
 
 message GetBestAvailableConnectionRequest {}
 
-message GetBestAvailableConnectionResponse {
+message GetBestAvailableConnectionReply {
     UriConnection connection = 1;
 }
 
@@ -818,7 +818,7 @@ message SetAutoSwitchRequest {
     bool autoSwitch = 1;
 }
 
-message SetAutoSwitchResponse {}
+message SetAutoSwitchReply {}
 
 message UriConnection {
     string uri = 1; // must always be filled
