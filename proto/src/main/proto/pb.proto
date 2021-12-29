@@ -1703,8 +1703,8 @@ message XmrConnectionList {
 message EncryptedUriConnection {
     string uri = 1;
     string username = 2;
-    bytes encryptedPassword = 3;
-    bytes encryptionSalt = 4;
+    bytes encrypted_password = 3;
+    bytes encryption_salt = 4;
     int32 priority = 5;
 }
 

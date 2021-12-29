@@ -778,7 +778,7 @@ message CheckConnectionsReply {
 }
 
 message StartCheckingConnectionsRequest {
-    int32 refreshPeriod = 1; // milliseconds
+    int32 refresh_period = 1; // milliseconds
 }
 
 message StartCheckingConnectionsReply {}
@@ -794,7 +794,7 @@ message GetBestAvailableConnectionReply {
 }
 
 message SetAutoSwitchRequest {
-    bool autoSwitch = 1;
+    bool auto_switch = 1;
 }
 
 message SetAutoSwitchReply {}
@@ -804,7 +804,7 @@ message UriConnection {
     string username = 2; // request-only
     string password = 3; // request-only
     int32 priority = 4; // the higher the number, the higher the relative priority
-    bool isOnline = 5;// whether or not the daemon is online, reply-only
+    bool is_online = 5;// whether or not the daemon is online, reply-only
     enum AuthenticationStatus {
         NO_AUTHENTICATION = 0;
         AUTHENTICATED = 1;
