@@ -216,25 +216,14 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
             _Reply reply = handler.handleRequest();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
-        } catch (URISyntaxException cause) {
-            handleUriSyntaxException(responseObserver, cause);
         } catch (Throwable cause) {
-            handleGenericException(responseObserver, cause);
+            exceptionHandler.handleException(log, cause, responseObserver);
         }
     }
 
     @FunctionalInterface
     private interface RpcRequestHandler<_Reply> {
         _Reply handleRequest() throws Exception;
-    }
-
-    private void handleUriSyntaxException(StreamObserver<?> responseObserver, URISyntaxException cause) {
-        // TODO: Different error handling?
-        handleGenericException(responseObserver, cause);
-    }
-
-    private void handleGenericException(StreamObserver<?> responseObserver, Throwable cause) {
-        exceptionHandler.handleException(log, cause, responseObserver);
     }
 
     private static bisq.proto.grpc.UriConnection toGrpcUriConnection(UriConnection uriConnection) {
