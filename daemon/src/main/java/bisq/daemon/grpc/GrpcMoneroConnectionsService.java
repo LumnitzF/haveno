@@ -28,8 +28,6 @@ import bisq.proto.grpc.CheckConnectionsReply;
 import bisq.proto.grpc.CheckConnectionsRequest;
 import bisq.proto.grpc.CheckCurrentConnectionReply;
 import bisq.proto.grpc.CheckCurrentConnectionRequest;
-import bisq.proto.grpc.ExtendedSetConnectionReply;
-import bisq.proto.grpc.ExtendedSetConnectionRequest;
 import bisq.proto.grpc.GetBestAvailableConnectionReply;
 import bisq.proto.grpc.GetBestAvailableConnectionRequest;
 import bisq.proto.grpc.GetConnectionReply;
@@ -125,18 +123,15 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void setConnection(SetConnectionRequest request,
                               StreamObserver<SetConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
-            coreApi.setMoneroConnection(validateUri(request.getUri()));
+            if (!request.hasConnection()) {
+                // It is unimportant whether setMoneroConnection(String) or
+                // setMoneroConnection(UriConnection) is called, as both will lead to the same result
+                // i.e. disconnecting the client
+                coreApi.setMoneroConnection((String) null);
+            } else {
+                coreApi.setMoneroConnection(toInternalUriConnection(request.getConnection()));
+            }
             return SetConnectionReply.newBuilder().build();
-        });
-    }
-
-    @Override
-    public void extendedSetConnection(ExtendedSetConnectionRequest request,
-                                      StreamObserver<ExtendedSetConnectionReply> responseObserver) {
-        handleRequest(responseObserver, () -> {
-            coreApi.setMoneroConnection(toInternalUriConnection(request.getConnection()));
-            return ExtendedSetConnectionReply.newBuilder().build();
-
         });
     }
 
@@ -291,7 +286,6 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
                             put(getGetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
                             put(getGetConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
                             put(getSetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
-                            put(getExtendedSetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
                             put(getCheckCurrentConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
                             put(getCheckConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
                             put(getCheckConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
