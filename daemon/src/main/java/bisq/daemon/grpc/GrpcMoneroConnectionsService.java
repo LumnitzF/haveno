@@ -226,7 +226,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
             return null;
         }
         return bisq.proto.grpc.UriConnection.newBuilder()
-                .setUri(uriConnection.getUri().toString())
+                .setUri(uriConnection.getUri())
                 .setPriority(uriConnection.getPriority())
                 .setIsOnline(uriConnection.isOnline())
                 .setAuthenticated(toAuthenticationStatus(uriConnection.getAuthenticationStatus()))
