@@ -702,43 +702,30 @@ message AddressBalanceInfo {
 service MoneroConnections {
     rpc AddConnection (AddConnectionRequest) returns (AddConnectionReply) {
     }
-
     rpc RemoveConnection(RemoveConnectionRequest) returns (RemoveConnectionReply) {
     }
-
     rpc GetConnection(GetConnectionRequest) returns (GetConnectionReply) {
     }
-
     rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsReply) {
     }
-
     rpc SetConnection(SetConnectionRequest) returns (SetConnectionReply) {
     }
-
     rpc ExtendedSetConnection(ExtendedSetConnectionRequest) returns (ExtendedSetConnectionReply) {
     }
-
     rpc CheckCurrentConnection(CheckCurrentConnectionRequest) returns (CheckCurrentConnectionReply) {
     }
-
     rpc CheckConnection(CheckConnectionRequest) returns (CheckConnectionReply) {
     }
-
     rpc CheckConnections(CheckConnectionsRequest) returns (CheckConnectionsReply) {
     }
-
     rpc StartCheckingConnections(StartCheckingConnectionsRequest) returns (StartCheckingConnectionsReply) {
     }
-
     rpc StopCheckingConnections(StopCheckingConnectionsRequest) returns (StopCheckingConnectionsReply) {
     }
-
     rpc GetBestAvailableConnection(GetBestAvailableConnectionRequest) returns (GetBestAvailableConnectionReply) {
     }
-
     rpc SetAutoSwitch(SetAutoSwitchRequest) returns (SetAutoSwitchReply) {
     }
-
 }
 
 
