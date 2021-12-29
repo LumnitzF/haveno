@@ -91,7 +91,17 @@ public final class MoneroConnectionsManager {
 
     public void setConnection(UriConnection connection) {
         synchronized (lock) {
-            connectionManager.setConnection(toMoneroRpcConnection(connection));
+            if (connectionManager.getConnectionByUri(connection.getUri()) != null
+                    && connection.getUsername() == null
+                    && connection.getPassword() == null
+                    && connection.getPriority() == 0) {
+                // If the connection by this uri is already known, and nothing of special value is set,
+                // only switch to the connection without overwriting username/password/priority
+                // with default values
+                setConnection(connection.getUri());
+            } else {
+                connectionManager.setConnection(toMoneroRpcConnection(connection));
+            }
         }
     }
 
