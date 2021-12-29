@@ -33,7 +33,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Store for {@link EncryptedUriConnection}s.
@@ -253,7 +252,6 @@ public class XmrConnectionList implements PersistableEnvelope, PersistedDataHost
         return encrypt(saltedPassword, encryptionKey);
     }
 
-    @Nullable
     private byte[] decryptPassword(byte[] encryptedSaltedPassword, byte[] salt) {
         byte[] decryptedSaltedPassword = decrypt(encryptedSaltedPassword, encryptionKey);
         if (arrayStartsWith(decryptedSaltedPassword, salt)) {
