@@ -1,6 +1,7 @@
 package bisq.core.xmr.connection.persistence.model;
 
 import bisq.core.api.CoreAccountService;
+import bisq.core.api.model.EncryptedUriConnection;
 import bisq.core.api.model.UriConnection;
 import bisq.core.crypto.ScryptUtil;
 

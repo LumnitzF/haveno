@@ -1,4 +1,4 @@
-package bisq.core.xmr.connection.persistence.model;
+package bisq.core.api.model;
 
 import bisq.common.proto.persistable.PersistablePayload;
 
@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Value;
 
 
-// TODO: Move this to correct package
 @Value
 @Builder(toBuilder = true)
 public class EncryptedUriConnection implements PersistablePayload {
