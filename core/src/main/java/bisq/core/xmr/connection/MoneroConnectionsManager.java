@@ -97,9 +97,6 @@ public final class MoneroConnectionsManager {
 
     public UriConnection checkConnection() {
         synchronized (lock) {
-            // TODO: if autoSwitch is enabled, and the current connection reports as disconnected with this call,
-            //  the following getConnection() will return the status of the new connection after the switch
-            //  Is this the wanted behaviour, or should the old, now disconnected connection be returned?
             connectionManager.checkConnection();
             return getConnection();
         }
