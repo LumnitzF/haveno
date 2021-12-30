@@ -155,7 +155,9 @@ public final class MoneroConnectionsManager {
         return UriConnection.builder()
                 .uri(moneroRpcConnection.getUri())
                 .priority(moneroRpcConnection.getPriority())
-                .online(moneroRpcConnection.isOnline())
+                // TODO: is this the wanted behaviour, or should an enum (like AuthenticationStatus) be created?
+                // null is mapped to false
+                .online(Boolean.TRUE.equals(moneroRpcConnection.isOnline()))
                 .authenticationStatus(authenticationStatus)
                 .build();
     }
