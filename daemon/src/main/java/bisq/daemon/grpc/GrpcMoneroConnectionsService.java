@@ -106,7 +106,11 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
                               StreamObserver<GetConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             bisq.proto.grpc.UriConnection replyConnection = toGrpcUriConnection(coreApi.getMoneroConnection());
-            return GetConnectionReply.newBuilder().setConnection(replyConnection).build();
+            GetConnectionReply.Builder builder = GetConnectionReply.newBuilder();
+            if (replyConnection != null) {
+                builder.setConnection(replyConnection);
+            }
+            return builder.build();
         });
     }
 
@@ -150,8 +154,12 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
                                        StreamObserver<CheckCurrentConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             UriConnection connection = coreApi.checkMoneroConnection();
-            return CheckCurrentConnectionReply.newBuilder()
-                    .setConnection(toGrpcUriConnection(connection)).build();
+            bisq.proto.grpc.UriConnection replyConnection = toGrpcUriConnection(connection);
+            CheckCurrentConnectionReply.Builder builder = CheckCurrentConnectionReply.newBuilder();
+            if (replyConnection != null) {
+                builder.setConnection(replyConnection);
+            }
+            return builder.build();
         });
     }
 
@@ -160,8 +168,12 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
                                 StreamObserver<CheckConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             UriConnection connection = coreApi.checkMoneroConnection(toInternalUriConnection(request.getConnection()));
-            return CheckConnectionReply.newBuilder()
-                    .setConnection(toGrpcUriConnection(connection)).build();
+            bisq.proto.grpc.UriConnection replyConnection = toGrpcUriConnection(connection);
+            CheckConnectionReply.Builder builder = CheckConnectionReply.newBuilder();
+            if (replyConnection != null) {
+                builder.setConnection(replyConnection);
+            }
+            return builder.build();
         });
     }
 
@@ -201,8 +213,12 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
                                            StreamObserver<GetBestAvailableConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             UriConnection connection = coreApi.getBestAvailableMoneroConnection();
-            return GetBestAvailableConnectionReply.newBuilder()
-                    .setConnection(toGrpcUriConnection(connection)).build();
+            bisq.proto.grpc.UriConnection replyConnection = toGrpcUriConnection(connection);
+            GetBestAvailableConnectionReply.Builder builder = GetBestAvailableConnectionReply.newBuilder();
+            if (replyConnection != null) {
+                builder.setConnection(replyConnection);
+            }
+            return builder.build();
         });
     }
 
