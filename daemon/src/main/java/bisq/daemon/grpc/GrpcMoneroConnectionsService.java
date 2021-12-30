@@ -307,19 +307,20 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
         return getCustomRateMeteringInterceptor(coreApi.getConfig().appDataDir, this.getClass())
                 .or(() -> Optional.of(CallRateMeteringInterceptor.valueOf(
                         new HashMap<>() {{
-                            put(getAddConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
-                            put(getRemoveConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
-                            put(getGetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
-                            put(getGetConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
-                            put(getSetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
-                            put(getExtendedSetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
-                            put(getCheckCurrentConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
-                            put(getCheckConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
-                            put(getCheckConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
-                            put(getStartCheckingConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
-                            put(getStopCheckingConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
-                            put(getGetBestAvailableConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
-                            put(getSetAutoSwitchMethod().getFullMethodName(), new GrpcCallRateMeter(1, SECONDS));
+                            int allowedCallsPerTimeWindow = 10;
+                            put(getAddConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
+                            put(getRemoveConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
+                            put(getGetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
+                            put(getGetConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
+                            put(getSetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
+                            put(getExtendedSetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
+                            put(getCheckCurrentConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
+                            put(getCheckConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
+                            put(getCheckConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
+                            put(getStartCheckingConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
+                            put(getStopCheckingConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
+                            put(getGetBestAvailableConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
+                            put(getSetAutoSwitchMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
                         }}
                 )));
     }
