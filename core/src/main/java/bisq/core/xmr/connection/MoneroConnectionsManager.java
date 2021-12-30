@@ -173,6 +173,9 @@ public final class MoneroConnectionsManager {
     }
 
     private MoneroRpcConnection toMoneroRpcConnection(UriConnection uriConnection) {
+        if (uriConnection == null) {
+            return null;
+        }
         return new MoneroRpcConnection(uriConnection.getUri(), uriConnection.getUsername(), uriConnection.getPassword()).setPriority(uriConnection.getPriority());
     }
 }

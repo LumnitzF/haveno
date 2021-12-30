@@ -271,7 +271,7 @@ public class XmrConnectionList implements PersistableEnvelope, PersistedDataHost
         // Generate salt, that is guaranteed to be no prefix of the password
         do {
             random.nextBytes(salt);
-        } while (arrayStartsWith(password, salt));
+        } while (password != null && arrayStartsWith(password, salt));
         return salt;
     }
 
