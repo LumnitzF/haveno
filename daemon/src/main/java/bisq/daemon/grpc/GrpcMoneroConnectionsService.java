@@ -134,7 +134,12 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void extendedSetConnection(ExtendedSetConnectionRequest request,
                                       StreamObserver<ExtendedSetConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
-            coreApi.setMoneroConnection(toInternalUriConnection(request.getConnection()));
+            if (request.hasConnection()) {
+                coreApi.setMoneroConnection(toInternalUriConnection(request.getConnection()));
+            } else {
+                // Disconnect from client
+                coreApi.setMoneroConnection((UriConnection) null);
+            }
             return ExtendedSetConnectionReply.newBuilder().build();
 
         });
