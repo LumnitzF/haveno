@@ -11,8 +11,14 @@ public class UriConnection {
     String username;
     String password;
     int priority;
-    boolean online;
+    OnlineStatus online;
     AuthenticationStatus authenticationStatus;
+
+    public enum OnlineStatus {
+        UNKNOWN,
+        ONLINE,
+        OFFLINE;
+    }
 
     public enum AuthenticationStatus {
         NO_AUTHENTICATION,

@@ -144,22 +144,32 @@ public final class MoneroConnectionsManager {
         if (moneroRpcConnection == null) {
             return null;
         }
-        UriConnection.AuthenticationStatus authenticationStatus;
-        if (moneroRpcConnection.isAuthenticated() == null) {
-            authenticationStatus = UriConnection.AuthenticationStatus.NO_AUTHENTICATION;
-        } else if (moneroRpcConnection.isAuthenticated()) {
-            authenticationStatus = UriConnection.AuthenticationStatus.AUTHENTICATED;
-        } else {
-            authenticationStatus = UriConnection.AuthenticationStatus.NOT_AUTHENTICATED;
-        }
         return UriConnection.builder()
                 .uri(moneroRpcConnection.getUri())
                 .priority(moneroRpcConnection.getPriority())
-                // TODO: is this the wanted behaviour, or should an enum (like AuthenticationStatus) be created?
-                // null is mapped to false
-                .online(Boolean.TRUE.equals(moneroRpcConnection.isOnline()))
-                .authenticationStatus(authenticationStatus)
+                .online(toOnlineStatus(moneroRpcConnection.isOnline()))
+                .authenticationStatus(toAuthenticationStatus(moneroRpcConnection.isAuthenticated()))
                 .build();
+    }
+
+    private UriConnection.AuthenticationStatus toAuthenticationStatus(Boolean authenticated) {
+        if (authenticated == null) {
+            return UriConnection.AuthenticationStatus.NO_AUTHENTICATION;
+        } else if (authenticated) {
+            return UriConnection.AuthenticationStatus.AUTHENTICATED;
+        } else {
+            return UriConnection.AuthenticationStatus.NOT_AUTHENTICATED;
+        }
+    }
+
+    private UriConnection.OnlineStatus toOnlineStatus(Boolean online) {
+        if (online == null) {
+            return UriConnection.OnlineStatus.UNKNOWN;
+        } else if (online) {
+            return UriConnection.OnlineStatus.ONLINE;
+        } else {
+            return UriConnection.OnlineStatus.OFFLINE;
+        }
     }
 
     private MoneroRpcConnection toMoneroRpcConnection(UriConnection uriConnection) {

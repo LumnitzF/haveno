@@ -254,7 +254,7 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
         return bisq.proto.grpc.UriConnection.newBuilder()
                 .setUri(uriConnection.getUri())
                 .setPriority(uriConnection.getPriority())
-                .setIsOnline(uriConnection.isOnline())
+                .setOnline(toOnlineStatus(uriConnection.getOnline()))
                 .setAuthenticated(toAuthenticationStatus(uriConnection.getAuthenticationStatus()))
                 .build();
     }
@@ -269,6 +269,19 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
                 return bisq.proto.grpc.UriConnection.AuthenticationStatus.NOT_AUTHENTICATED;
             default:
                 throw new UnsupportedOperationException(String.format("Unsupported authentication status %s", authenticationStatus));
+        }
+    }
+
+    private static bisq.proto.grpc.UriConnection.OnlineStatus toOnlineStatus(UriConnection.OnlineStatus onlineStatus) {
+        switch (onlineStatus) {
+            case UNKNOWN:
+                return bisq.proto.grpc.UriConnection.OnlineStatus.UNKNOWN;
+            case ONLINE:
+                return bisq.proto.grpc.UriConnection.OnlineStatus.ONLINE;
+            case OFFLINE:
+                return bisq.proto.grpc.UriConnection.OnlineStatus.OFFLINE;
+            default:
+                throw new UnsupportedOperationException(String.format("Unsupported online status %s", onlineStatus));
         }
     }
 

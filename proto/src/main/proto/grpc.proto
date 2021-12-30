@@ -812,7 +812,12 @@ message UriConnection {
     string username = 2; // request-only
     string password = 3; // request-only
     int32 priority = 4; // the higher the number, the higher the relative priority
-    bool is_online = 5;// whether or not the daemon is online, reply-only
+    enum OnlineStatus {
+        UNKNOWN = 0;
+        ONLINE = 1;
+        OFFLINE = 2;
+    }
+    OnlineStatus online = 5;// whether or not the daemon is online, reply-only
     enum AuthenticationStatus {
         NO_AUTHENTICATION = 0;
         AUTHENTICATED = 1;
