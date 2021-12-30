@@ -710,6 +710,8 @@ service MoneroConnections {
     }
     rpc SetConnection(SetConnectionRequest) returns (SetConnectionReply) {
     }
+    rpc ExtendedSetConnection(ExtendedSetConnectionRequest) returns (ExtendedSetConnectionReply) {
+    }
     rpc CheckCurrentConnection(CheckCurrentConnectionRequest) returns (CheckCurrentConnectionReply) {
     }
     rpc CheckConnection(CheckConnectionRequest) returns (CheckConnectionReply) {
@@ -752,10 +754,16 @@ message GetConnectionsReply {
 }
 
 message SetConnectionRequest {
-    UriConnection connection = 1;
+    string uri = 1;
 }
 
 message SetConnectionReply {}
+
+message ExtendedSetConnectionRequest {
+    UriConnection connection = 1;
+}
+
+message ExtendedSetConnectionReply {}
 
 message CheckCurrentConnectionRequest {}
 
