@@ -22,14 +22,10 @@ import bisq.core.api.model.UriConnection;
 
 import bisq.proto.grpc.AddConnectionReply;
 import bisq.proto.grpc.AddConnectionRequest;
-import bisq.proto.grpc.CheckConnectionReply;
-import bisq.proto.grpc.CheckConnectionRequest;
 import bisq.proto.grpc.CheckConnectionsReply;
 import bisq.proto.grpc.CheckConnectionsRequest;
-import bisq.proto.grpc.CheckCurrentConnectionReply;
-import bisq.proto.grpc.CheckCurrentConnectionRequest;
-import bisq.proto.grpc.ExtendedSetConnectionReply;
-import bisq.proto.grpc.ExtendedSetConnectionRequest;
+import bisq.proto.grpc.CheckConnectionReply;
+import bisq.proto.grpc.CheckConnectionRequest;
 import bisq.proto.grpc.GetBestAvailableConnectionReply;
 import bisq.proto.grpc.GetBestAvailableConnectionRequest;
 import bisq.proto.grpc.GetConnectionReply;
@@ -129,45 +125,18 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     public void setConnection(SetConnectionRequest request,
                               StreamObserver<SetConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
-            coreApi.setMoneroConnection(validateUri(request.getUri()));
+            if (request.getUri() != null && !request.getUri().isEmpty()) coreApi.setMoneroConnection(validateUri(request.getUri()));
+            else if (request.hasConnection()) coreApi.setMoneroConnection(toInternalUriConnection(request.getConnection()));
+            else coreApi.setMoneroConnection((UriConnection) null); // disconnect from client
             return SetConnectionReply.newBuilder().build();
         });
     }
 
     @Override
-    public void extendedSetConnection(ExtendedSetConnectionRequest request,
-                                      StreamObserver<ExtendedSetConnectionReply> responseObserver) {
-        handleRequest(responseObserver, () -> {
-            if (request.hasConnection()) {
-                coreApi.setMoneroConnection(toInternalUriConnection(request.getConnection()));
-            } else {
-                // Disconnect from client
-                coreApi.setMoneroConnection((UriConnection) null);
-            }
-            return ExtendedSetConnectionReply.newBuilder().build();
-
-        });
-    }
-
-    @Override
-    public void checkCurrentConnection(CheckCurrentConnectionRequest request,
-                                       StreamObserver<CheckCurrentConnectionReply> responseObserver) {
+    public void checkConnection(CheckConnectionRequest request,
+                                       StreamObserver<CheckConnectionReply> responseObserver) {
         handleRequest(responseObserver, () -> {
             UriConnection connection = coreApi.checkMoneroConnection();
-            bisq.proto.grpc.UriConnection replyConnection = toGrpcUriConnection(connection);
-            CheckCurrentConnectionReply.Builder builder = CheckCurrentConnectionReply.newBuilder();
-            if (replyConnection != null) {
-                builder.setConnection(replyConnection);
-            }
-            return builder.build();
-        });
-    }
-
-    @Override
-    public void checkConnection(CheckConnectionRequest request,
-                                StreamObserver<CheckConnectionReply> responseObserver) {
-        handleRequest(responseObserver, () -> {
-            UriConnection connection = coreApi.checkMoneroConnection(toInternalUriConnection(request.getConnection()));
             bisq.proto.grpc.UriConnection replyConnection = toGrpcUriConnection(connection);
             CheckConnectionReply.Builder builder = CheckConnectionReply.newBuilder();
             if (replyConnection != null) {
@@ -254,8 +223,8 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
         return bisq.proto.grpc.UriConnection.newBuilder()
                 .setUri(uriConnection.getUri())
                 .setPriority(uriConnection.getPriority())
-                .setOnline(toOnlineStatus(uriConnection.getOnline()))
-                .setAuthenticated(toAuthenticationStatus(uriConnection.getAuthenticationStatus()))
+                .setOnlineStatus(toOnlineStatus(uriConnection.getOnlineStatus()))
+                .setAuthenticationStatus(toAuthenticationStatus(uriConnection.getAuthenticationStatus()))
                 .build();
     }
 
@@ -288,9 +257,9 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
     private static UriConnection toInternalUriConnection(bisq.proto.grpc.UriConnection connection) throws URISyntaxException {
         return UriConnection.builder()
                 .uri(validateUri(connection.getUri()))
-                .priority(connection.getPriority())
                 .username(nullIfEmpty(connection.getUsername()))
                 .password(nullIfEmpty(connection.getPassword()))
+                .priority(connection.getPriority())
                 .build();
     }
 
@@ -326,8 +295,6 @@ class GrpcMoneroConnectionsService extends MoneroConnectionsImplBase {
                             put(getGetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
                             put(getGetConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
                             put(getSetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
-                            put(getExtendedSetConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
-                            put(getCheckCurrentConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
                             put(getCheckConnectionMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
                             put(getCheckConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));
                             put(getStartCheckingConnectionsMethod().getFullMethodName(), new GrpcCallRateMeter(allowedCallsPerTimeWindow, SECONDS));

@@ -418,10 +418,6 @@ public class CoreApi {
         return coreMoneroConnectionsService.checkConnection();
     }
 
-    public UriConnection checkMoneroConnection(UriConnection connection) {
-        return coreMoneroConnectionsService.checkConnection(connection);
-    }
-
     public List<UriConnection> checkMoneroConnections() {
         return coreMoneroConnectionsService.checkConnections();
     }
