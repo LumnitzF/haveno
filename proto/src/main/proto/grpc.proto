@@ -710,10 +710,6 @@ service MoneroConnections {
     }
     rpc SetConnection(SetConnectionRequest) returns (SetConnectionReply) {
     }
-    rpc ExtendedSetConnection(ExtendedSetConnectionRequest) returns (ExtendedSetConnectionReply) {
-    }
-    rpc CheckCurrentConnection(CheckCurrentConnectionRequest) returns (CheckCurrentConnectionReply) {
-    }
     rpc CheckConnection(CheckConnectionRequest) returns (CheckConnectionReply) {
     }
     rpc CheckConnections(CheckConnectionsRequest) returns (CheckConnectionsReply) {
@@ -728,6 +724,25 @@ service MoneroConnections {
     }
 }
 
+message UriConnection {
+    enum OnlineStatus {
+        UNKNOWN = 0;
+        ONLINE = 1;
+        OFFLINE = 2;
+    }
+    enum AuthenticationStatus {
+        NO_AUTHENTICATION = 0;
+        AUTHENTICATED = 1;
+        NOT_AUTHENTICATED = 2;
+    }
+
+    string uri = 1;
+    string username = 2; // request only
+    string password = 3; // request only
+    int32 priority = 4;
+    OnlineStatus online_status = 5; // reply only
+    AuthenticationStatus authentication_status = 6; // reply only
+}
 
 message AddConnectionRequest {
     UriConnection connection = 1;
@@ -755,25 +770,12 @@ message GetConnectionsReply {
 
 message SetConnectionRequest {
     string uri = 1;
+    UriConnection connection = 2;
 }
 
 message SetConnectionReply {}
 
-message ExtendedSetConnectionRequest {
-    UriConnection connection = 1;
-}
-
-message ExtendedSetConnectionReply {}
-
-message CheckCurrentConnectionRequest {}
-
-message CheckCurrentConnectionReply {
-    UriConnection connection = 1;
-}
-
-message CheckConnectionRequest {
-    UriConnection connection = 1;
-}
+message CheckConnectionRequest {}
 
 message CheckConnectionReply {
     UriConnection connection = 1;
@@ -806,25 +808,6 @@ message SetAutoSwitchRequest {
 }
 
 message SetAutoSwitchReply {}
-
-message UriConnection {
-    string uri = 1; // must always be filled
-    string username = 2; // request-only
-    string password = 3; // request-only
-    int32 priority = 4; // the higher the number, the higher the relative priority
-    enum OnlineStatus {
-        UNKNOWN = 0;
-        ONLINE = 1;
-        OFFLINE = 2;
-    }
-    OnlineStatus online = 5;// whether or not the daemon is online, reply-only
-    enum AuthenticationStatus {
-        NO_AUTHENTICATION = 0;
-        AUTHENTICATED = 1;
-        NOT_AUTHENTICATED = 2;
-    }
-    AuthenticationStatus authenticated = 6; // reply-only
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Version

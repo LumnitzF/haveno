@@ -7,12 +7,6 @@ import lombok.Value;
 @Value
 @Builder
 public class UriConnection {
-    @NonNull String uri;
-    String username;
-    String password;
-    int priority;
-    OnlineStatus online;
-    AuthenticationStatus authenticationStatus;
 
     public enum OnlineStatus {
         UNKNOWN,
@@ -25,4 +19,11 @@ public class UriConnection {
         AUTHENTICATED,
         NOT_AUTHENTICATED
     }
+
+    @NonNull String uri;
+    String username;
+    String password;
+    int priority;
+    OnlineStatus onlineStatus;
+    AuthenticationStatus authenticationStatus;
 }

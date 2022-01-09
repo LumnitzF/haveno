@@ -211,24 +211,23 @@ public class XmrConnectionList implements PersistableEnvelope, PersistedDataHost
         byte[] passwordBytes = password == null ? null : password.getBytes(StandardCharsets.UTF_8);
         byte[] passwordSalt = generateSalt(passwordBytes);
         byte[] encryptedPassword = encryptPassword(passwordBytes, passwordSalt);
-
         return EncryptedUriConnection.builder()
                 .uri(connection.getUri())
-                .username(connection.getUsername())
-                .priority(connection.getPriority())
+                .username(connection.getUsername() == null ? "" : connection.getUsername())
                 .encryptedPassword(encryptedPassword)
                 .encryptionSalt(passwordSalt)
+                .priority(connection.getPriority())
                 .build();
     }
 
     private UriConnection toUriConnection(EncryptedUriConnection connection) {
         byte[] decryptedPasswordBytes = decryptPassword(connection.getEncryptedPassword(), connection.getEncryptionSalt());
-        String password = decryptedPasswordBytes == null ? null : new String(decryptedPasswordBytes, StandardCharsets.UTF_8);
+        String password = decryptedPasswordBytes == null ? "" : new String(decryptedPasswordBytes, StandardCharsets.UTF_8);
         return UriConnection.builder()
                 .uri(connection.getUri())
                 .username(connection.getUsername())
-                .priority(connection.getPriority())
                 .password(password)
+                .priority(connection.getPriority())
                 .build();
     }
 

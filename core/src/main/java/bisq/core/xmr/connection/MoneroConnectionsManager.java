@@ -1,19 +1,13 @@
 package bisq.core.xmr.connection;
 
 import bisq.core.api.model.UriConnection;
-import bisq.core.btc.setup.WalletConfig;
 import bisq.core.xmr.connection.persistence.model.XmrConnectionList;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
-
-
-
 import monero.common.MoneroConnectionManager;
 import monero.common.MoneroRpcConnection;
 
@@ -22,9 +16,15 @@ import monero.common.MoneroRpcConnection;
 public final class MoneroConnectionsManager {
 
     private final Object lock = new Object();
-
     private final MoneroConnectionManager connectionManager;
     private final XmrConnectionList connectionList;
+    private static final long CHECK_PERIOD_MS = 15000l; // check the connection every 15 seconds // TODO: this connection manager should update app status, don't poll in WalletsSetup every 30 seconds
+
+    // TODO (woodser): support each network type, move to config, remove localhost authentication
+    private final List<MoneroRpcConnection> DEFAULT_CONNECTIONS = Arrays.asList(
+            new MoneroRpcConnection("http://localhost:38081", "superuser", "abctesting123").setPriority(1), // localhost is first priority
+            new MoneroRpcConnection("http://haveno.exchange:38081", "", "").setPriority(2)
+    );
 
     @Inject
     public MoneroConnectionsManager(MoneroConnectionManager connectionManager,
@@ -37,22 +37,27 @@ public final class MoneroConnectionsManager {
     private void initialize() {
         synchronized (lock) {
             loadConnections();
-            addDefaultConnection();
+            addDefaultConnections();
+            setConnection(DEFAULT_CONNECTIONS.get(0).getUri()); // TODO (woodser): set connection to last used connection
+            checkConnection();
+            connectionManager.startCheckingConnection(CHECK_PERIOD_MS);
         }
     }
 
     private void loadConnections() {
-        connectionList.getConnections().forEach(uriConnection ->
-                connectionManager.addConnection(toMoneroRpcConnection(uriConnection)));
+        connectionList.getConnections().forEach(uriConnection -> {
+            connectionManager.addConnection(toMoneroRpcConnection(uriConnection));
+        });
     }
 
-    private void addDefaultConnection() {
-        String defaultUri = WalletConfig.MONERO_DAEMON_URI;
-        if (!connectionList.hasConnection(defaultUri)) {
+    private void addDefaultConnections() {
+        for (MoneroRpcConnection connection : DEFAULT_CONNECTIONS) {
+            if (connectionList.hasConnection(connection.getUri())) continue;
             addConnection(UriConnection.builder()
-                    .uri(defaultUri)
-                    .username(WalletConfig.MONERO_DAEMON_USERNAME)
-                    .password(WalletConfig.MONERO_DAEMON_PASSWORD)
+                    .uri(connection.getUri())
+                    .username(connection.getUsername())
+                    .password(connection.getPassword())
+                    .priority(connection.getPriority())
                     .build());
         }
     }
@@ -79,19 +84,27 @@ public final class MoneroConnectionsManager {
 
     public List<UriConnection> getConnections() {
         synchronized (lock) {
-            return connectionManager.getConnections().stream().map(this::toUriConnection).collect(Collectors.toList());
+            return connectionManager.getConnections().stream().map(MoneroConnectionsManager::toUriConnection).collect(Collectors.toList());
         }
     }
 
     public void setConnection(String connectionUri) {
         synchronized (lock) {
             connectionManager.setConnection(connectionUri);
+            if (connectionUri != null) {
+                connectionList.removeConnection(connectionUri);
+                connectionList.addConnection(toUriConnection(connectionManager.getConnection(), true));
+            }
         }
     }
 
     public void setConnection(UriConnection connection) {
         synchronized (lock) {
             connectionManager.setConnection(toMoneroRpcConnection(connection));
+            if (connection != null) {
+                connectionList.removeConnection(connection.getUri());
+                connectionList.addConnection(connection);
+            }
         }
     }
 
@@ -100,13 +113,6 @@ public final class MoneroConnectionsManager {
             connectionManager.checkConnection();
             return getConnection();
         }
-    }
-
-    public UriConnection checkConnection(UriConnection connection) {
-        // No synchronisation needed, as no interaction with connectionManager
-        MoneroRpcConnection rpcConnection = toMoneroRpcConnection(connection);
-        rpcConnection.checkConnection(connectionManager.getTimeout());
-        return toUriConnection(rpcConnection);
     }
 
     public List<UriConnection> checkConnections() {
@@ -130,7 +136,7 @@ public final class MoneroConnectionsManager {
 
     public UriConnection getBestAvailableConnection() {
         synchronized (lock) {
-            return toUriConnection(connectionManager.getBestAvailableConnection());
+            return toUriConnection(connectionManager.getBestAvailableConnection(), false);
         }
     }
 
@@ -139,43 +145,37 @@ public final class MoneroConnectionsManager {
             connectionManager.setAutoSwitch(autoSwitch);
         }
     }
+    
+    private static UriConnection toUriConnection(MoneroRpcConnection rpcConnection) {
+        return toUriConnection(rpcConnection, false);
+    }
 
-    private UriConnection toUriConnection(MoneroRpcConnection moneroRpcConnection) {
-        if (moneroRpcConnection == null) {
-            return null;
-        }
+    private static UriConnection toUriConnection(MoneroRpcConnection rpcConnection, boolean includeCredentials) {
+        if (rpcConnection == null) return null;
         return UriConnection.builder()
-                .uri(moneroRpcConnection.getUri())
-                .priority(moneroRpcConnection.getPriority())
-                .online(toOnlineStatus(moneroRpcConnection.isOnline()))
-                .authenticationStatus(toAuthenticationStatus(moneroRpcConnection.isAuthenticated()))
+                .uri(rpcConnection.getUri())
+                .priority(rpcConnection.getPriority())
+                .onlineStatus(toOnlineStatus(rpcConnection.isOnline()))
+                .authenticationStatus(toAuthenticationStatus(rpcConnection.isAuthenticated()))
+                .username(includeCredentials ? rpcConnection.getUsername() : "")
+                .password(includeCredentials ? rpcConnection.getPassword() : "")
                 .build();
     }
 
-    private UriConnection.AuthenticationStatus toAuthenticationStatus(Boolean authenticated) {
-        if (authenticated == null) {
-            return UriConnection.AuthenticationStatus.NO_AUTHENTICATION;
-        } else if (authenticated) {
-            return UriConnection.AuthenticationStatus.AUTHENTICATED;
-        } else {
-            return UriConnection.AuthenticationStatus.NOT_AUTHENTICATED;
-        }
+    private static UriConnection.AuthenticationStatus toAuthenticationStatus(Boolean authenticated) {
+        if (authenticated == null) return UriConnection.AuthenticationStatus.NO_AUTHENTICATION;
+        else if (authenticated) return UriConnection.AuthenticationStatus.AUTHENTICATED;
+        else return UriConnection.AuthenticationStatus.NOT_AUTHENTICATED;
     }
 
-    private UriConnection.OnlineStatus toOnlineStatus(Boolean online) {
-        if (online == null) {
-            return UriConnection.OnlineStatus.UNKNOWN;
-        } else if (online) {
-            return UriConnection.OnlineStatus.ONLINE;
-        } else {
-            return UriConnection.OnlineStatus.OFFLINE;
-        }
+    private static UriConnection.OnlineStatus toOnlineStatus(Boolean online) {
+        if (online == null) return UriConnection.OnlineStatus.UNKNOWN;
+        else if (online) return UriConnection.OnlineStatus.ONLINE;
+        else return UriConnection.OnlineStatus.OFFLINE;
     }
 
-    private MoneroRpcConnection toMoneroRpcConnection(UriConnection uriConnection) {
-        if (uriConnection == null) {
-            return null;
-        }
+    private static MoneroRpcConnection toMoneroRpcConnection(UriConnection uriConnection) {
+        if (uriConnection == null) return null;
         return new MoneroRpcConnection(uriConnection.getUri(), uriConnection.getUsername(), uriConnection.getPassword()).setPriority(uriConnection.getPriority());
     }
 }

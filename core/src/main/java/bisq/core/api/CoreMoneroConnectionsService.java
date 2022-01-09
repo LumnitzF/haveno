@@ -54,10 +54,6 @@ class CoreMoneroConnectionsService {
         return connectionManager.checkConnection();
     }
 
-    UriConnection checkConnection(UriConnection connection) {
-        return connectionManager.checkConnection(connection);
-    }
-
     List<UriConnection> checkConnections() {
         return connectionManager.checkConnections();
     }
