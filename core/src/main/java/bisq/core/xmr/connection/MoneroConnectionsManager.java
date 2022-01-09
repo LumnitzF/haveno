@@ -15,16 +15,18 @@ import monero.common.MoneroRpcConnection;
 @Singleton
 public final class MoneroConnectionsManager {
 
-    private final Object lock = new Object();
-    private final MoneroConnectionManager connectionManager;
-    private final XmrConnectionList connectionList;
-    private static final long CHECK_PERIOD_MS = 15000l; // check the connection every 15 seconds // TODO: this connection manager should update app status, don't poll in WalletsSetup every 30 seconds
+    // TODO: this connection manager should update app status, don't poll in WalletsSetup every 30 seconds
+    private static final long DEFAULT_REFRESH_PERIOD = 15_000L; // check the connection every 15 seconds per default
 
     // TODO (woodser): support each network type, move to config, remove localhost authentication
-    private final List<MoneroRpcConnection> DEFAULT_CONNECTIONS = Arrays.asList(
+    private static final List<MoneroRpcConnection> DEFAULT_CONNECTIONS = Arrays.asList(
             new MoneroRpcConnection("http://localhost:38081", "superuser", "abctesting123").setPriority(1), // localhost is first priority
             new MoneroRpcConnection("http://haveno.exchange:38081", "", "").setPriority(2)
     );
+
+    private final Object lock = new Object();
+    private final MoneroConnectionManager connectionManager;
+    private final XmrConnectionList connectionList;
 
     @Inject
     public MoneroConnectionsManager(MoneroConnectionManager connectionManager,
@@ -38,9 +40,10 @@ public final class MoneroConnectionsManager {
         synchronized (lock) {
             loadConnections();
             addDefaultConnections();
-            setConnection(DEFAULT_CONNECTIONS.get(0).getUri()); // TODO (woodser): set connection to last used connection
+            restoreActiveConnection();
+            registerConnectionChangedListener();
+            restoreConfiguration();
             checkConnection();
-            connectionManager.startCheckingConnection(CHECK_PERIOD_MS);
         }
     }
 
@@ -59,6 +62,34 @@ public final class MoneroConnectionsManager {
                     .password(connection.getPassword())
                     .priority(connection.getPriority())
                     .build());
+        }
+    }
+
+    private void restoreActiveConnection() {
+        connectionList.getActiveConnectionUri().ifPresent(connectionManager::setConnection);
+    }
+
+    private void registerConnectionChangedListener() {
+        connectionManager.addListener(this::persistActiveConnectionChanged);
+    }
+
+    private void persistActiveConnectionChanged(MoneroRpcConnection activeConnection) {
+        synchronized (lock) {
+            if (activeConnection == null) {
+                connectionList.setActiveConnectionUri(null);
+            } else {
+                connectionList.setActiveConnectionUri(activeConnection.getUri());
+            }
+        }
+    }
+
+    private void restoreConfiguration() {
+        connectionManager.setAutoSwitch(connectionList.isAutoSwitchEnabled());
+        long refreshPeriod = connectionList.getRefreshPeriod();
+        if (refreshPeriod > 0) {
+            connectionManager.startCheckingConnection(refreshPeriod);
+        } else if (refreshPeriod == 0) {
+            connectionManager.startCheckingConnection(DEFAULT_REFRESH_PERIOD);
         }
     }
 
@@ -91,20 +122,14 @@ public final class MoneroConnectionsManager {
     public void setConnection(String connectionUri) {
         synchronized (lock) {
             connectionManager.setConnection(connectionUri);
-            if (connectionUri != null) {
-                connectionList.removeConnection(connectionUri);
-                connectionList.addConnection(toUriConnection(connectionManager.getConnection(), true));
-            }
+            // No need to update connectionList, as this will be done by the listener
         }
     }
 
     public void setConnection(UriConnection connection) {
         synchronized (lock) {
             connectionManager.setConnection(toMoneroRpcConnection(connection));
-            if (connection != null) {
-                connectionList.removeConnection(connection.getUri());
-                connectionList.addConnection(connection);
-            }
+            // No need to update connectionList, as this will be done by the listener
         }
     }
 
@@ -124,13 +149,15 @@ public final class MoneroConnectionsManager {
 
     public void startCheckingConnection(Long refreshPeriod) {
         synchronized (lock) {
-            connectionManager.startCheckingConnection(refreshPeriod);
+            connectionManager.startCheckingConnection(refreshPeriod == null ? DEFAULT_REFRESH_PERIOD : refreshPeriod);
+            connectionList.setRefreshPeriod(refreshPeriod);
         }
     }
 
     public void stopCheckingConnection() {
         synchronized (lock) {
             connectionManager.stopCheckingConnection();
+            connectionList.setRefreshPeriod(-1L);
         }
     }
 
@@ -143,9 +170,10 @@ public final class MoneroConnectionsManager {
     public void setAutoSwitch(boolean autoSwitch) {
         synchronized (lock) {
             connectionManager.setAutoSwitch(autoSwitch);
+            connectionList.setAutoSwitchEnabled(autoSwitch);
         }
     }
-    
+
     private static UriConnection toUriConnection(MoneroRpcConnection rpcConnection) {
         return toUriConnection(rpcConnection, false);
     }

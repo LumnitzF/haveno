@@ -1698,6 +1698,15 @@ message TradingPeer {
 message XmrConnectionList {
     bytes salt = 1;
     repeated EncryptedUriConnection items = 2;
+    // uri of the last active connection
+    string activeConnection = 3;
+    // configured refresh period
+    // negative: no automated refresh is activated
+    // zero: automated refresh with default period
+    // positive: automated refresh with configured period (value)
+    int64 refreshPeriod = 4;
+    // Whether autoSwitch is enabled or not
+    bool autoSwitch = 5;
 }
 
 message EncryptedUriConnection {

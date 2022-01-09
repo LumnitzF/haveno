@@ -1,38 +1,32 @@
 package bisq.core.xmr.connection.persistence.model;
 
-import bisq.core.api.CoreAccountService;
-import bisq.core.api.model.EncryptedUriConnection;
-import bisq.core.api.model.UriConnection;
-import bisq.core.crypto.ScryptUtil;
-
 import bisq.common.crypto.CryptoException;
 import bisq.common.crypto.Encryption;
 import bisq.common.persistence.PersistenceManager;
 import bisq.common.proto.persistable.PersistableEnvelope;
 import bisq.common.proto.persistable.PersistedDataHost;
-
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Message;
-
-import org.bitcoinj.crypto.KeyCrypterScrypt;
-
-import javax.inject.Inject;
-
-import javax.crypto.SecretKey;
-
-import java.security.SecureRandom;
-
+import bisq.core.api.CoreAccountService;
+import bisq.core.api.model.EncryptedUriConnection;
+import bisq.core.api.model.UriConnection;
+import bisq.core.crypto.ScryptUtil;
 import java.nio.charset.StandardCharsets;
-
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.crypto.SecretKey;
+import javax.inject.Inject;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Message;
+import lombok.NonNull;
+import org.bitcoinj.crypto.KeyCrypterScrypt;
 
 
 /**
@@ -42,11 +36,11 @@ import java.util.stream.Collectors;
  * If a connection has no password, this is "hidden" by using some random value as fake password.
  *
  * @implNote The password encryption mechanism is handled as follows.
- *  A random salt is generated and stored for each connection. If the connection has no password,
- *  the salt is used as prefix and some random data is attached as fake password. If the connection has a password,
- *  the salt is used as suffix to the actual password. When the password gets decrypted, it is checked whether the
- *  salt is a prefix of the decrypted value. If it is a prefix, the connection has no password.
- *  Otherwise, it is removed (from the end) and the remaining value is the actual password.
+ * A random salt is generated and stored for each connection. If the connection has no password,
+ * the salt is used as prefix and some random data is attached as fake password. If the connection has a password,
+ * the salt is used as suffix to the actual password. When the password gets decrypted, it is checked whether the
+ * salt is a prefix of the decrypted value. If it is a prefix, the connection has no password.
+ * Otherwise, it is removed (from the end) and the remaining value is the actual password.
  */
 public class XmrConnectionList implements PersistableEnvelope, PersistedDataHost {
 
@@ -66,6 +60,9 @@ public class XmrConnectionList implements PersistableEnvelope, PersistedDataHost
     transient private PersistenceManager<XmrConnectionList> persistenceManager;
 
     private final Map<String, EncryptedUriConnection> items = new HashMap<>();
+    private @NonNull String activeConnectionUri = "";
+    private long refreshPeriod;
+    private boolean autoSwitchEnabled;
 
     @Inject
     public XmrConnectionList(PersistenceManager<XmrConnectionList> persistenceManager,
@@ -76,9 +73,16 @@ public class XmrConnectionList implements PersistableEnvelope, PersistedDataHost
         this.accountService.addPasswordChangeListener(this::onPasswordChange);
     }
 
-    private XmrConnectionList(byte[] salt, List<EncryptedUriConnection> items) {
+    private XmrConnectionList(byte[] salt,
+                              List<EncryptedUriConnection> items,
+                              @NonNull String activeConnectionUri,
+                              long refreshPeriod,
+                              boolean autoSwitchEnabled) {
         this.keyCrypterScrypt = ScryptUtil.getKeyCrypterScrypt(salt);
         this.items.putAll(items.stream().collect(Collectors.toMap(EncryptedUriConnection::getUri, Function.identity())));
+        this.activeConnectionUri = activeConnectionUri;
+        this.refreshPeriod = refreshPeriod;
+        this.autoSwitchEnabled = autoSwitchEnabled;
     }
 
     @Override
@@ -89,6 +93,9 @@ public class XmrConnectionList implements PersistableEnvelope, PersistedDataHost
                 initializeEncryption(persistedXmrConnectionList.keyCrypterScrypt);
                 items.clear();
                 items.putAll(persistedXmrConnectionList.items);
+                activeConnectionUri = persistedXmrConnectionList.activeConnectionUri;
+                refreshPeriod = persistedXmrConnectionList.refreshPeriod;
+                autoSwitchEnabled = persistedXmrConnectionList.autoSwitchEnabled;
             } finally {
                 writeLock.unlock();
             }
@@ -148,6 +155,73 @@ public class XmrConnectionList implements PersistableEnvelope, PersistedDataHost
             items.remove(connection);
         } finally {
             writeLock.unlock();
+        }
+        requestPersistence();
+    }
+
+    public void setAutoSwitchEnabled(boolean autoSwitchEnabled) {
+        boolean changed;
+        writeLock.lock();
+        try {
+            changed = this.autoSwitchEnabled != (this.autoSwitchEnabled = autoSwitchEnabled);
+        } finally {
+            writeLock.unlock();
+        }
+        if (changed) {
+            requestPersistence();
+        }
+    }
+
+    public boolean isAutoSwitchEnabled() {
+        readLock.lock();
+        try {
+            return autoSwitchEnabled;
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    public void setRefreshPeriod(Long refreshPeriod) {
+        boolean changed;
+        writeLock.lock();
+        try {
+            changed = this.refreshPeriod != (this.refreshPeriod = refreshPeriod == null ? 0L : refreshPeriod);
+        } finally {
+            writeLock.unlock();
+        }
+        if (changed) {
+            requestPersistence();
+        }
+    }
+
+    public long getRefreshPeriod() {
+        readLock.lock();
+        try {
+            return refreshPeriod;
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    public void setActiveConnectionUri(String activeConnectionUri) {
+        boolean changed;
+        writeLock.lock();
+        try {
+            changed = !this.activeConnectionUri.equals(this.activeConnectionUri = activeConnectionUri == null ? "" : activeConnectionUri);
+        } finally {
+            writeLock.unlock();
+        }
+        if (changed) {
+            requestPersistence();
+        }
+    }
+
+    public Optional<String> getActiveConnectionUri() {
+        readLock.lock();
+        try {
+            return Optional.of(activeConnectionUri).filter(s -> !s.isEmpty());
+        } finally {
+            readLock.unlock();
         }
     }
 
@@ -290,18 +364,27 @@ public class XmrConnectionList implements PersistableEnvelope, PersistedDataHost
     public Message toProtoMessage() {
         List<protobuf.EncryptedUriConnection> connections;
         ByteString saltString;
+        String activeConnectionUri;
+        boolean autoSwitchEnabled;
+        long refreshPeriod;
         readLock.lock();
         try {
             connections = items.values().stream()
                     .map(EncryptedUriConnection::toProtoMessage).collect(Collectors.toList());
             saltString = keyCrypterScrypt.getScryptParameters().getSalt();
+            activeConnectionUri = this.activeConnectionUri;
+            autoSwitchEnabled = this.autoSwitchEnabled;
+            refreshPeriod = this.refreshPeriod;
         } finally {
             readLock.unlock();
         }
         return protobuf.PersistableEnvelope.newBuilder()
                 .setXmrConnectionList(protobuf.XmrConnectionList.newBuilder()
                         .setSalt(saltString)
-                        .addAllItems(connections))
+                        .addAllItems(connections)
+                        .setActiveConnection(activeConnectionUri)
+                        .setRefreshPeriod(refreshPeriod)
+                        .setAutoSwitch(autoSwitchEnabled))
                 .build();
     }
 
@@ -309,6 +392,6 @@ public class XmrConnectionList implements PersistableEnvelope, PersistedDataHost
         List<EncryptedUriConnection> items = proto.getItemsList().stream()
                 .map(EncryptedUriConnection::fromProto)
                 .collect(Collectors.toList());
-        return new XmrConnectionList(proto.getSalt().toByteArray(), items);
+        return new XmrConnectionList(proto.getSalt().toByteArray(), items, proto.getActiveConnection(), proto.getRefreshPeriod(), proto.getAutoSwitch());
     }
 }
