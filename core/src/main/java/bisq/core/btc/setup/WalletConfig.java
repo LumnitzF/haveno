@@ -126,9 +126,9 @@ public class WalletConfig extends AbstractIdleService {
     // Monero configuration
     // TODO: don't hard code configuration, inject into classes?
     private static final MoneroNetworkType MONERO_NETWORK_TYPE = MoneroNetworkType.STAGENET;
-    private static final String MONERO_DAEMON_URI = "http://localhost:38081";
-    private static final String MONERO_DAEMON_USERNAME = "superuser";
-    private static final String MONERO_DAEMON_PASSWORD = "abctesting123";
+    public static final String MONERO_DAEMON_URI = "http://localhost:38081";
+    public static final String MONERO_DAEMON_USERNAME = "superuser";
+    public static final String MONERO_DAEMON_PASSWORD = "abctesting123";
     private static final MoneroWalletRpcManager MONERO_WALLET_RPC_MANAGER = new MoneroWalletRpcManager();
     private static final String MONERO_WALLET_RPC_DIR = System.getProperty("user.dir") + File.separator + ".localnet"; // .localnet contains monero-wallet-rpc and wallet files
     private static final String MONERO_WALLET_RPC_PATH = MONERO_WALLET_RPC_DIR + File.separator + "monero-wallet-rpc";
