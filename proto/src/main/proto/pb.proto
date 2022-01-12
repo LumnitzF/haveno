@@ -1321,7 +1321,7 @@ message PersistableEnvelope {
 
         XmrAddressEntryList xmr_address_entry_list = 1001;
         SignedOfferList signed_offer_list = 1002;
-        XmrConnectionList xmr_connection_list = 1003;
+        EncryptedConnectionList encrypted_connection_list = 1003;
     }
 }
 
@@ -1692,29 +1692,23 @@ message TradingPeer {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// Monero Connections
+// Connections
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-message XmrConnectionList {
-    bytes salt = 1;
-    repeated EncryptedUriConnection items = 2;
-    // uri of the last active connection
-    string activeConnection = 3;
-    // configured refresh period
-    // negative: no automated refresh is activated
-    // zero: automated refresh with default period
-    // positive: automated refresh with configured period (value)
-    int64 refreshPeriod = 4;
-    // Whether autoSwitch is enabled or not
-    bool autoSwitch = 5;
-}
-
-message EncryptedUriConnection {
+message EncryptedConnection {
     string uri = 1;
     string username = 2;
     bytes encrypted_password = 3;
     bytes encryption_salt = 4;
     int32 priority = 5;
+}
+
+message EncryptedConnectionList {
+    bytes salt = 1;
+    repeated EncryptedConnection items = 2;
+    string current_connection_uri = 3;
+    int64 refresh_period = 4; // negative: no automated refresh is activated, zero: automated refresh with default period, positive: automated refresh with configured period (value)
+    bool auto_switch = 5;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
