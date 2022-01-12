@@ -1,7 +1,7 @@
 package bisq.core.xmr.connection;
 
 import bisq.core.api.model.UriConnection;
-import bisq.core.xmr.connection.persistence.model.XmrConnectionList;
+import bisq.core.xmr.connection.persistence.model.EncryptedConnectionList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,11 +26,11 @@ public final class MoneroConnectionsManager {
 
     private final Object lock = new Object();
     private final MoneroConnectionManager connectionManager;
-    private final XmrConnectionList connectionList;
+    private final EncryptedConnectionList connectionList;
 
     @Inject
     public MoneroConnectionsManager(MoneroConnectionManager connectionManager,
-                                    XmrConnectionList connectionList) {
+                                    EncryptedConnectionList connectionList) {
         this.connectionManager = connectionManager;
         this.connectionList = connectionList;
         initialize();
@@ -38,58 +38,51 @@ public final class MoneroConnectionsManager {
 
     private void initialize() {
         synchronized (lock) {
-            loadConnections();
-            addDefaultConnections();
-            restoreActiveConnection();
-            registerConnectionChangedListener();
-            restoreConfiguration();
+
+            // load connections
+            connectionList.getConnections().forEach(uriConnection -> {
+                connectionManager.addConnection(toMoneroRpcConnection(uriConnection));
+            });
+
+            // add default connections
+            for (MoneroRpcConnection connection : DEFAULT_CONNECTIONS) {
+                if (connectionList.hasConnection(connection.getUri())) continue;
+                addConnection(UriConnection.builder()
+                        .uri(connection.getUri())
+                        .username(connection.getUsername())
+                        .password(connection.getPassword())
+                        .priority(connection.getPriority())
+                        .build());
+            }
+
+            // restore last used connection
+            connectionList.getCurrentConnectionUri().ifPresentOrElse(connectionManager::setConnection, () -> {
+                connectionManager.setConnection(DEFAULT_CONNECTIONS.get(0).getUri()); // default to localhost
+            });
+
+            // register connection change listener
+            connectionManager.addListener(this::onConnectionChanged);
+
+            // restore configuration
+            connectionManager.setAutoSwitch(connectionList.getAutoSwitch());
+            long refreshPeriod = connectionList.getRefreshPeriod();
+            if (refreshPeriod > 0) connectionManager.startCheckingConnection(refreshPeriod);
+            else if (refreshPeriod == 0) connectionManager.startCheckingConnection(DEFAULT_REFRESH_PERIOD);
+
+            // check connection
             checkConnection();
         }
     }
 
-    private void loadConnections() {
-        connectionList.getConnections().forEach(uriConnection -> {
-            connectionManager.addConnection(toMoneroRpcConnection(uriConnection));
-        });
-    }
-
-    private void addDefaultConnections() {
-        for (MoneroRpcConnection connection : DEFAULT_CONNECTIONS) {
-            if (connectionList.hasConnection(connection.getUri())) continue;
-            addConnection(UriConnection.builder()
-                    .uri(connection.getUri())
-                    .username(connection.getUsername())
-                    .password(connection.getPassword())
-                    .priority(connection.getPriority())
-                    .build());
-        }
-    }
-
-    private void restoreActiveConnection() {
-        connectionList.getActiveConnectionUri().ifPresent(connectionManager::setConnection);
-    }
-
-    private void registerConnectionChangedListener() {
-        connectionManager.addListener(this::persistActiveConnectionChanged);
-    }
-
-    private void persistActiveConnectionChanged(MoneroRpcConnection activeConnection) {
+    private void onConnectionChanged(MoneroRpcConnection currentConnection) {
         synchronized (lock) {
-            if (activeConnection == null) {
-                connectionList.setActiveConnectionUri(null);
+            if (currentConnection == null) {
+                connectionList.setCurrentConnectionUri(null);
             } else {
-                connectionList.setActiveConnectionUri(activeConnection.getUri());
+                connectionList.removeConnection(currentConnection.getUri());
+                connectionList.addConnection(toUriConnection(currentConnection, true));
+                connectionList.setCurrentConnectionUri(currentConnection.getUri());
             }
-        }
-    }
-
-    private void restoreConfiguration() {
-        connectionManager.setAutoSwitch(connectionList.isAutoSwitchEnabled());
-        long refreshPeriod = connectionList.getRefreshPeriod();
-        if (refreshPeriod > 0) {
-            connectionManager.startCheckingConnection(refreshPeriod);
-        } else if (refreshPeriod == 0) {
-            connectionManager.startCheckingConnection(DEFAULT_REFRESH_PERIOD);
         }
     }
 
@@ -121,15 +114,13 @@ public final class MoneroConnectionsManager {
 
     public void setConnection(String connectionUri) {
         synchronized (lock) {
-            connectionManager.setConnection(connectionUri);
-            // No need to update connectionList, as this will be done by the listener
+            connectionManager.setConnection(connectionUri); // listener will update connection list
         }
     }
 
     public void setConnection(UriConnection connection) {
         synchronized (lock) {
-            connectionManager.setConnection(toMoneroRpcConnection(connection));
-            // No need to update connectionList, as this will be done by the listener
+            connectionManager.setConnection(toMoneroRpcConnection(connection)); // listener will update connection list
         }
     }
 
@@ -170,7 +161,7 @@ public final class MoneroConnectionsManager {
     public void setAutoSwitch(boolean autoSwitch) {
         synchronized (lock) {
             connectionManager.setAutoSwitch(autoSwitch);
-            connectionList.setAutoSwitchEnabled(autoSwitch);
+            connectionList.setAutoSwitch(autoSwitch);
         }
     }
 

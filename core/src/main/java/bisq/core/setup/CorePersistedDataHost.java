@@ -28,7 +28,7 @@ import bisq.core.trade.closed.ClosedTradableManager;
 import bisq.core.trade.failed.FailedTradesManager;
 import bisq.core.user.Preferences;
 import bisq.core.user.User;
-import bisq.core.xmr.connection.persistence.model.XmrConnectionList;
+import bisq.core.xmr.connection.persistence.model.EncryptedConnectionList;
 
 import bisq.network.p2p.mailbox.IgnoredMailboxService;
 import bisq.network.p2p.mailbox.MailboxMessageService;
@@ -67,7 +67,7 @@ public class CorePersistedDataHost {
         persistedDataHosts.add(injector.getInstance(MailboxMessageService.class));
         persistedDataHosts.add(injector.getInstance(IgnoredMailboxService.class));
         persistedDataHosts.add(injector.getInstance(RemovedPayloadsService.class));
-        persistedDataHosts.add(injector.getInstance(XmrConnectionList.class));
+        persistedDataHosts.add(injector.getInstance(EncryptedConnectionList.class));
 
         return persistedDataHosts;
     }
