@@ -7,6 +7,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import monero.common.MoneroConnectionManager;
+import monero.common.MoneroConnectionManagerListener;
 import monero.common.MoneroRpcConnection;
 
 @Slf4j
@@ -31,6 +32,7 @@ public final class MoneroConnectionsManager {
                                     EncryptedConnectionList connectionList) {
         this.connectionManager = connectionManager;
         this.connectionList = connectionList;
+        // TODO: Move this initialization out of the constructor, as the connectionList has not read the persisted file yet
         initialize();
     }
 
@@ -94,6 +96,12 @@ public final class MoneroConnectionsManager {
     public MoneroRpcConnection getConnection() {
         synchronized (lock) {
             return connectionManager.getConnection();
+        }
+    }
+
+    public void addConnectionListener(MoneroConnectionManagerListener listener) {
+        synchronized (lock) {
+            connectionManager.addListener(listener);
         }
     }
 
