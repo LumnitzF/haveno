@@ -7,7 +7,6 @@ import bisq.common.proto.persistable.PersistableEnvelope;
 import bisq.common.proto.persistable.PersistedDataHost;
 import bisq.core.api.CoreAccountService;
 import bisq.core.api.model.EncryptedConnection;
-import bisq.core.api.model.UriConnection;
 import bisq.core.crypto.ScryptUtil;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
@@ -26,6 +25,7 @@ import javax.inject.Inject;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 import lombok.NonNull;
+import monero.common.MoneroRpcConnection;
 import org.bitcoinj.crypto.KeyCrypterScrypt;
 
 
@@ -116,10 +116,10 @@ public class EncryptedConnectionList implements PersistableEnvelope, PersistedDa
         encryptionKey = toSecretKey(accountService.getPassword());
     }
 
-    public List<UriConnection> getConnections() {
+    public List<MoneroRpcConnection> getConnections() {
         readLock.lock();
         try {
-            return items.values().stream().map(this::toUriConnection).collect(Collectors.toList());
+            return items.values().stream().map(this::toMoneroRpcConnection).collect(Collectors.toList());
         } finally {
             readLock.unlock();
         }
@@ -134,12 +134,12 @@ public class EncryptedConnectionList implements PersistableEnvelope, PersistedDa
         }
     }
 
-    public void addConnection(UriConnection connection) {
+    public void addConnection(MoneroRpcConnection connection) {
         EncryptedConnection currentValue;
         writeLock.lock();
         try {
-            EncryptedConnection encryptedUriConnection = toEncryptedConnection(connection);
-            currentValue = items.putIfAbsent(connection.getUri(), encryptedUriConnection);
+            EncryptedConnection encryptedConnection = toEncryptedConnection(connection);
+            currentValue = items.putIfAbsent(connection.getUri(), encryptedConnection);
         } finally {
             writeLock.unlock();
         }
@@ -280,7 +280,7 @@ public class EncryptedConnectionList implements PersistableEnvelope, PersistedDa
         }
     }
 
-    private EncryptedConnection toEncryptedConnection(UriConnection connection) {
+    private EncryptedConnection toEncryptedConnection(MoneroRpcConnection connection) {
         String password = connection.getPassword();
         byte[] passwordBytes = password == null ? null : password.getBytes(StandardCharsets.UTF_8);
         byte[] passwordSalt = generateSalt(passwordBytes);
@@ -294,15 +294,13 @@ public class EncryptedConnectionList implements PersistableEnvelope, PersistedDa
                 .build();
     }
 
-    private UriConnection toUriConnection(EncryptedConnection connection) {
+    private MoneroRpcConnection toMoneroRpcConnection(EncryptedConnection connection) {
         byte[] decryptedPasswordBytes = decryptPassword(connection.getEncryptedPassword(), connection.getEncryptionSalt());
-        String password = decryptedPasswordBytes == null ? "" : new String(decryptedPasswordBytes, StandardCharsets.UTF_8);
-        return UriConnection.builder()
-                .uri(connection.getUri())
-                .username(connection.getUsername())
-                .password(password)
-                .priority(connection.getPriority())
-                .build();
+        String password = decryptedPasswordBytes == null ? null : new String(decryptedPasswordBytes, StandardCharsets.UTF_8);
+        String username = connection.getUsername().isEmpty() ? null : connection.getUsername();
+        MoneroRpcConnection moneroRpcConnection = new MoneroRpcConnection(connection.getUri(), username, password);
+        moneroRpcConnection.setPriority(connection.getPriority());
+        return moneroRpcConnection;
     }
 
 
