@@ -21,7 +21,6 @@ import bisq.core.api.model.AddressBalanceInfo;
 import bisq.core.api.model.BalancesInfo;
 import bisq.core.api.model.MarketPriceInfo;
 import bisq.core.api.model.TxFeeRateInfo;
-import bisq.core.api.model.UriConnection;
 import bisq.core.monetary.Price;
 import bisq.core.offer.Offer;
 import bisq.core.offer.OfferPayload;
@@ -60,6 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 
 
 
+import monero.common.MoneroRpcConnection;
 import monero.wallet.model.MoneroDestination;
 import monero.wallet.model.MoneroTxWallet;
 
@@ -407,7 +407,7 @@ public class CoreApi {
     // Monero Connections
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    public void addMoneroConnection(UriConnection connection) {
+    public void addMoneroConnection(MoneroRpcConnection connection) {
         coreMoneroConnectionsService.addConnection(connection);
     }
 
@@ -415,15 +415,11 @@ public class CoreApi {
         coreMoneroConnectionsService.removeConnection(connectionUri);
     }
 
-    public void removeMoneroConnection(UriConnection connection) {
-        coreMoneroConnectionsService.removeConnection(connection);
-    }
-
-    public UriConnection getMoneroConnection() {
+    public MoneroRpcConnection getMoneroConnection() {
         return coreMoneroConnectionsService.getConnection();
     }
 
-    public List<UriConnection> getMoneroConnections() {
+    public List<MoneroRpcConnection> getMoneroConnections() {
         return coreMoneroConnectionsService.getConnections();
     }
 
@@ -431,15 +427,15 @@ public class CoreApi {
         coreMoneroConnectionsService.setConnection(connectionUri);
     }
 
-    public void setMoneroConnection(UriConnection connection) {
+    public void setMoneroConnection(MoneroRpcConnection connection) {
         coreMoneroConnectionsService.setConnection(connection);
     }
 
-    public UriConnection checkMoneroConnection() {
+    public MoneroRpcConnection checkMoneroConnection() {
         return coreMoneroConnectionsService.checkConnection();
     }
 
-    public List<UriConnection> checkMoneroConnections() {
+    public List<MoneroRpcConnection> checkMoneroConnections() {
         return coreMoneroConnectionsService.checkConnections();
     }
 
@@ -451,7 +447,7 @@ public class CoreApi {
         coreMoneroConnectionsService.stopCheckingConnection();
     }
 
-    public UriConnection getBestAvailableMoneroConnection() {
+    public MoneroRpcConnection getBestAvailableMoneroConnection() {
         return coreMoneroConnectionsService.getBestAvailableConnection();
     }
 

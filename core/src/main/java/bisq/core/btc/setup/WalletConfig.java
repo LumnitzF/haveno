@@ -17,10 +17,10 @@
 
 package bisq.core.btc.setup;
 
+import bisq.core.api.CoreMoneroConnectionsService;
 import bisq.core.btc.nodes.LocalBitcoinNode;
 import bisq.core.btc.nodes.ProxySocketFactory;
 import bisq.core.btc.wallet.HavenoRiskAnalysis;
-import bisq.core.xmr.connection.MoneroConnectionsManager;
 
 import bisq.common.config.Config;
 import bisq.common.file.FileUtil;
@@ -137,7 +137,7 @@ public class WalletConfig extends AbstractIdleService {
 
     protected final NetworkParameters params;
     protected final String filePrefix;
-    protected final MoneroConnectionsManager moneroConnectionsManager;
+    protected final CoreMoneroConnectionsService moneroConnectionsManager;
     protected volatile BlockChain vChain;
     protected volatile SPVBlockStore vStore;
     protected volatile MoneroDaemonRpc vXmrDaemon;
@@ -177,7 +177,7 @@ public class WalletConfig extends AbstractIdleService {
     public WalletConfig(NetworkParameters params,
                         File directory,
                         int rpcBindPort,
-                        MoneroConnectionsManager connectionsManager,
+                        CoreMoneroConnectionsService connectionsManager,
                         String filePrefix) {
         this(new Context(params), directory, rpcBindPort, connectionsManager, filePrefix);
     }
@@ -185,7 +185,7 @@ public class WalletConfig extends AbstractIdleService {
     /**
      * Creates a new WalletConfig, with the given {@link Context}. Files will be stored in the given directory.
      */
-    private WalletConfig(Context context, File directory, int rpcBindPort, MoneroConnectionsManager connectionsManager, String filePrefix) {
+    private WalletConfig(Context context, File directory, int rpcBindPort, CoreMoneroConnectionsService connectionsManager, String filePrefix) {
         this.context = context;
         this.params = checkNotNull(context.getParams());
         this.directory = checkDir(directory);

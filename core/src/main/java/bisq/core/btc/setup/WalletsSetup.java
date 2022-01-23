@@ -17,6 +17,7 @@
 
 package bisq.core.btc.setup;
 
+import bisq.core.api.CoreMoneroConnectionsService;
 import bisq.core.btc.exceptions.InvalidHostException;
 import bisq.core.btc.exceptions.RejectedTxException;
 import bisq.core.btc.model.AddressEntry;
@@ -30,7 +31,6 @@ import bisq.core.btc.nodes.BtcNodesSetupPreferences;
 import bisq.core.btc.nodes.LocalBitcoinNode;
 import bisq.core.user.Preferences;
 
-import bisq.core.xmr.connection.MoneroConnectionsManager;
 import bisq.network.Socks5MultiDiscovery;
 import bisq.network.Socks5ProxyProvider;
 
@@ -129,7 +129,7 @@ public class WalletsSetup {
     private final LocalBitcoinNode localBitcoinNode;
     private final BtcNodes btcNodes;
     @Getter
-    private final MoneroConnectionsManager moneroConnectionsManager;
+    private final CoreMoneroConnectionsService moneroConnectionsManager;
     private final String xmrWalletFileName;
     private final int numConnectionsForBtc;
     private final String userAgent;
@@ -159,7 +159,7 @@ public class WalletsSetup {
                         Config config,
                         LocalBitcoinNode localBitcoinNode,
                         BtcNodes btcNodes,
-                        MoneroConnectionsManager moneroConnectionsManager,
+                        CoreMoneroConnectionsService moneroConnectionsManager,
                         @Named(Config.USER_AGENT) String userAgent,
                         @Named(Config.WALLET_DIR) File walletDir,
                         @Named(Config.WALLET_RPC_BIND_PORT) int walletRpcBindPort,
@@ -208,7 +208,7 @@ public class WalletsSetup {
 
         // initialize Monero connection manager
         moneroConnectionsManager.initialize();
-        
+
         backupWallets();
 
         final Socks5Proxy socks5Proxy = preferences.getUseTorForBitcoinJ() ? socks5ProxyProvider.getSocks5Proxy() : null;
@@ -256,7 +256,7 @@ public class WalletsSetup {
                 // onSetupCompleted in walletAppKit is not the called on the last invocations, so we add a bit of delay
                 UserThread.runAfter(resultHandler::handleResult, 100, TimeUnit.MILLISECONDS);
             }
-            
+
             private void updateDaemonInfo() {
                 try {
                     if (vXmrDaemon == null) throw new RuntimeException("No daemon connection");
